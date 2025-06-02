@@ -34,13 +34,13 @@ server {
     ssl_prefer_server_ciphers on;
 
     location /static/ {
-        alias /srv/wistful/backend_staticfiles/;
+        alias /srv/wistful/DJANGO_staticfiles/;
         expires 30d;
         access_log off;
     }
 
     location /media/ {
-        alias /srv/wistful/backend_media/;
+        alias /srv/wistful/DJANGO_media/;
         expires 30d;
         access_log off;
     }

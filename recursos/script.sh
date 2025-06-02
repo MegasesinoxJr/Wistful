@@ -79,8 +79,9 @@ run_and_report "Probar configuración Nginx" "nginx -t"
 run_and_report "Recargar Nginx" "systemctl reload nginx"
 
 # DOCKER DEPLOYMENT COMMANDS
-container_name="wistful-backend"
+container_name="wistful-backend-1"
 
 run_and_report "makemigrations" "docker exec -i $container_name bash -c 'python3 manage.py makemigrations'"
 run_and_report "migrate" "docker exec -i $container_name bash -c 'python3 manage.py migrate'"
 run_and_report "collectstatic" "docker exec -i $container_name bash -c 'python3 manage.py collectstatic --noinput'"
+run_and_report "download_default_profile_pic" "docker exec -i $container_name bash -c 'wget --user-agent="Mozilla/5.0" -O /srv/wistful/DJANGO_media/perfil/default.jpg https://i.imgur.com/Oh7J7GP.jpeg'"

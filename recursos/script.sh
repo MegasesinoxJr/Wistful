@@ -85,3 +85,4 @@ run_and_report "makemigrations" "docker exec -i $container_name bash -c 'python3
 run_and_report "migrate" "docker exec -i $container_name bash -c 'python3 manage.py migrate'"
 run_and_report "collectstatic" "docker exec -i $container_name bash -c 'python3 manage.py collectstatic --noinput'"
 run_and_report "download_default_profile_pic" "mkdir -p /srv/wistful/DJANGO_media/perfil/ && wget --user-agent='Mozilla/5.0' -O /srv/wistful/DJANGO_media/perfil/default.jpg https://raw.githubusercontent.com/MegasesinoxJr/Wistful/refs/heads/main/recursos/Oh7J7GP.jpeg"
+run_and_report "create_superuser" "docker exec -i $container_name bash -c 'DJANGO_SUPERUSER_USERNAME=admin DJANGO_SUPERUSER_EMAIL=admin@wistful.my DJANGO_SUPERUSER_PASSWORD=adminpassword python manage.py createsuperuser --noinput'"

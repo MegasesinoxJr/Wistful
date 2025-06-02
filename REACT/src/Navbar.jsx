@@ -98,7 +98,7 @@ export const Navbar = () => {
               <>
                 <li>
                   <Link to="/profile" className="px-3 py-2">
-                    <img src={`${SERVER_BASE_URL}${user.imagen_perfil}`} alt="Perfil" className="w-10 h-10 rounded-full object-cover hover:opacity-80" />
+                    <img src={`${SERVER_BASE_URL}${user.imagen_perfil}?${new Date().getTime()}`} alt="Perfil" className="w-10 h-10 rounded-full object-cover hover:opacity-80" />
                   </Link>
                 </li>
                 {isMember && <li><NavLink to="/hazte-vip" className="hover:bg-yellow-400 px-3 py-2 rounded transition">Hazte VIP</NavLink></li>}

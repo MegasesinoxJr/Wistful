@@ -1,0 +1,10 @@
+FROM node:20.18.1
+
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+RUN yarn install
+
+# Código fuente no copiado — se monta como volumen
+
+CMD ["yarn", "dev", "--host"]

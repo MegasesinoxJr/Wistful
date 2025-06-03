@@ -421,22 +421,37 @@ def modificar_rol(request, user_id):
         return Response({"error": "Usuario no existe"}, status=404)
 
     nuevo_rol = request.data.get('role')
-    actor = Miembro.objects.get(user=request.user).role
-    if actor == 'admin':
+    actor_miembro = Miembro.objects.get(user=request.user)
+    actor_rol = actor_miembro.role
+
+    # Evitar que admin modifique a admin o root
+    if actor_rol == 'admin' and target.role in ('admin', 'root'):
+        return Response(
+            {"error": "No tienes permisos para modificar a este usuario."},
+            status=403
+        )
+
+    # Definir roles permitidos según el actor
+    if actor_rol == 'admin':
         permitido = ('colaborador', 'vip', 'miembro')
-    else:  # actor == 'root'
+    elif actor_rol == 'root':
         permitido = ('admin', 'colaborador', 'vip', 'miembro')
+    else:
+        return Response(
+            {"error": "No tienes permisos para modificar roles."},
+            status=403
+        )
 
     if nuevo_rol not in permitido:
         return Response(
-            {"error": f"No puedes asignar el rol '{nuevo_rol}' como {actor}."},
+            {"error": f"No puedes asignar el rol '{nuevo_rol}' como {actor_rol}."},
             status=403
         )
 
     target.role = nuevo_rol
     target.save()
-    return Response(MiembroSerializer(target).data)
-    
+    return Response(MiembroSerializer(target).data) 
+
 #PASARELA DE PAGO
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

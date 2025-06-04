@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../axiosInstance";
 import axiosInstancePublic, { SERVER_BASE_URL, WS_SERVER_BASE_URL } from "../axiosInstancePublic";
+
 export default function PvpEnfrentamientos() {
   const [combatiente, setCombatiente] = useState(null);
   const [oponente, setOponente] = useState(null);
@@ -14,9 +15,29 @@ export default function PvpEnfrentamientos() {
   const [animateAttacker, setAnimateAttacker] = useState(null);
   const [animateVictim, setAnimateVictim] = useState(null);
 
+  // Nuevo estado para modo edición
+  const [editMode, setEditMode] = useState(false);
+  // Estados para edición
+  const [imagenNueva, setImagenNueva] = useState(null);
+  const [habilidadesEdit, setHabilidadesEdit] = useState({
+    habilidad_1: "",
+    habilidad_2: "",
+    habilidad_3: "",
+    habilidad_4: ""
+  });
+
   const fetchCombatiente = () => {
     axiosInstance.get('/combatiente/')
-      .then(r => setCombatiente(r.data))
+      .then(r => {
+        setCombatiente(r.data);
+        setHabilidadesEdit({
+          habilidad_1: r.data.habilidad_1 || "",
+          habilidad_2: r.data.habilidad_2 || "",
+          habilidad_3: r.data.habilidad_3 || "",
+          habilidad_4: r.data.habilidad_4 || "",
+        });
+        setImagenNueva(null);
+      })
       .catch(() => setCombatiente(null));
   };
 
@@ -41,7 +62,6 @@ export default function PvpEnfrentamientos() {
         setVidaCombatiente(msg.vidaCombatiente);
         setVidaOponente(msg.vidaOponente);
         setTurno(msg.turn);
-        // Animación de atacante y víctima
         const attacker = msg.turn === "combatiente" ? "combatiente" : "oponente";
         const victim = attacker === "combatiente" ? "oponente" : "combatiente";
         setAnimateAttacker(attacker);
@@ -59,7 +79,7 @@ export default function PvpEnfrentamientos() {
         setVidaOponente(100);
         setOponente(null);
         setSkillMessage("");
-        fetchCombatiente()
+        fetchCombatiente();
       } else if (msg.event === "message") {
         setSkillMessage(msg.text);
       }
@@ -72,6 +92,48 @@ export default function PvpEnfrentamientos() {
     if (turno === "combatiente") {
       ws.send(JSON.stringify({ action: "use_skill", skill: habilidad }));
       setTurno("oponente");
+    }
+  };
+
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
+    // Reset edits if canceling
+    if (editMode) {
+      fetchCombatiente();
+    }
+  };
+
+  const handleHabilidadChange = (e) => {
+    const { name, value } = e.target;
+    setHabilidadesEdit((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImagenChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImagenNueva(e.target.files[0]);
+    }
+  };
+
+  const guardarCambios = async () => {
+    // Crear formData para enviar imagen si hay nueva
+    const formData = new FormData();
+    formData.append("habilidad_1", habilidadesEdit.habilidad_1);
+    formData.append("habilidad_2", habilidadesEdit.habilidad_2);
+    formData.append("habilidad_3", habilidadesEdit.habilidad_3);
+    formData.append("habilidad_4", habilidadesEdit.habilidad_4);
+    if (imagenNueva) {
+      formData.append("imagen", imagenNueva);
+    }
+
+    try {
+      // Suponiendo endpoint PATCH para actualizar combatiente
+      await axiosInstance.patch("/combatiente/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      fetchCombatiente();
+      setEditMode(false);
+    } catch (error) {
+      alert("Error al guardar cambios");
     }
   };
 
@@ -93,7 +155,16 @@ export default function PvpEnfrentamientos() {
         </div>
       )}
 
-      <h1 className="text-4xl font-bold mb-6 text-gray-800">⚔️PVP⚔️</h1>
+      <h1 className="text-4xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+        ⚔️PVP⚔️
+        <button
+          onClick={toggleEditMode}
+          title={editMode ? "Cancelar edición" : "Editar habilidades e imagen"}
+          className="text-xl"
+        >
+          {editMode ? "❌" : "✏️"}
+        </button>
+      </h1>
 
       <style>{`
         @keyframes hit-attack {
@@ -113,7 +184,7 @@ export default function PvpEnfrentamientos() {
       <div className="flex items-center space-x-8 mb-6 -mt-8">
         <div className="flex flex-col items-center relative pt-8" >
           <img
-            src={`${SERVER_BASE_URL}${combatiente.imagen}`}
+            src={imagenNueva ? URL.createObjectURL(imagenNueva) : `${SERVER_BASE_URL}${combatiente.imagen}`}
             alt="Combatiente"
             className={`w-28 h-28 rounded-full shadow-md ${turno === "oponente" ? "animate-pulse" : ""} ${animateAttacker === "combatiente" ? "hit-attack" : ""} ${animateVictim === "oponente" ? "animate-pulse" : ""}`}
           />
@@ -133,15 +204,50 @@ export default function PvpEnfrentamientos() {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-3xl text-center">
+
         <h2 className="text-2xl font-semibold mb-4">
           {combatiente.nombre} vs {oponente ? oponente.nombre : "¿?"}
         </h2>
 
-        {estado === "battle" && (
+        {editMode ? (
           <>
+            <div className="mb-4">
+              <label className="block mb-2 font-semibold">Editar Imagen:</label>
+              <input type="file" accept="image/*" onChange={handleImagenChange} />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {["habilidad_1", "habilidad_2", "habilidad_3", "habilidad_4"].map((key) => (
+                <div key={key}>
+                  <label className="block mb-1 font-semibold capitalize">{key.replace("_", " ")}:</label>
+                  <input
+                    type="text"
+                    name={key}
+                    value={habilidadesEdit[key]}
+                    onChange={handleHabilidadChange}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              ))}
+            </div>
 
-
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={guardarCambios}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={toggleEditMode}
+                className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded"
+              >
+                Cancelar
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
             {estado === "battle" && (
               <>
                 <div className="flex flex-col md:flex-row gap-4 mb-8 w-full px-4">
@@ -193,14 +299,13 @@ export default function PvpEnfrentamientos() {
                 </div>
               </>
             )}
-
           </>
         )}
 
         <button
           onClick={iniciarPVP}
-          disabled={estado !== "idle"}
-          className={`py-2 px-6 rounded-lg font-semibold transition ${estado === "idle"
+          disabled={estado !== "idle" || editMode}
+          className={`py-2 px-6 rounded-lg font-semibold transition ${estado === "idle" && !editMode
             ? "bg-green-500 hover:bg-green-600 text-white"
             : "bg-gray-400 text-gray-700 cursor-not-allowed"
             }`}
@@ -256,7 +361,6 @@ export default function PvpEnfrentamientos() {
                   </div>
                   <span className="text-sm">{oponente.experiencia}/100</span>
                 </div>
-
               </div>
             </div>
           </div>

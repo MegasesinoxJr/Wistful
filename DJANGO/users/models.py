@@ -61,6 +61,8 @@ class Meet(models.Model):
     latitud       = models.FloatField()
     longitud      = models.FloatField()
     max_participantes = models.PositiveIntegerField()
+    fecha         = models.DateField()  
+    hora          = models.TimeField()  
     creado_en     = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

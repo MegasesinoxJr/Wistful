@@ -32,6 +32,8 @@ urlpatterns = [
     path('meets/<int:pk>/asistir/', AsistirMeetView.as_view(), name='meets-asistir'),
     path('meets/<int:pk>/desapuntarse/', DesapuntarseMeetView.as_view(), name='desapuntarse'),
     path('meets/<int:pk>/delete/', MeetDestroyView.as_view(), name='meets-delete'),  
+    path('meets/<int:pk>/editar/', MeetUpdateView.as_view(), name='editar_meet'),
+    path('meets/mis-meets/', MeetsUsuarioView.as_view(), name='mis-meets'),
 
     #PVP POKEMON
     path('combatiente/', CombatienteCreateView.as_view()),

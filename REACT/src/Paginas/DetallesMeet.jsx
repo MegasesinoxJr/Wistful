@@ -14,20 +14,29 @@ export default function DetallesMeet() {
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
+  const [editando, setEditando] = useState({
+    titulo: false,
+    descripcion: false,
+    ubicacion: false,
+  });
+  const [valoresEditados, setValoresEditados] = useState({
+    titulo: "",
+    descripcion: "",
+    ubicacion: "",
+  });
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: "AIzaSyBR1j1rzVOBpHuNDfPuO65PoycVt02vuBU",
   });
 
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log("Usuario desde localStorage:", user);
   const userId = user?.id;
-  const userRole = user?.role; // Cambiado a "role"
+  const userRole = user?.role;
 
   useEffect(() => {
     const fetchMeet = async () => {
       try {
         const res = await axiosInstance.get(`/meets/${id}/`);
-        console.log("Meet cargada:", res.data);
         setMeet(res.data);
       } catch (e) {
         setError("No se pudo cargar la meet.");
@@ -38,13 +47,70 @@ export default function DetallesMeet() {
     fetchMeet();
   }, [id]);
 
-  // Actualizar lógica con userRole correcto
   const puedeEliminar =
     meet &&
     (userId === meet.creador.id ||
       ["admin", "root", "colaborador"].includes(userRole));
 
-  console.log({ userId, creadorId: meet?.creador?.id, userRole, puedeEliminar });
+  const puedeEditar = puedeEliminar;
+
+  const activarEdicion = (campo) => {
+    setEditando((prev) => ({ ...prev, [campo]: true }));
+    setValoresEditados((prev) => ({ ...prev, [campo]: meet[campo] }));
+  };
+
+  const cancelarEdicion = (campo) => {
+    setEditando((prev) => ({ ...prev, [campo]: false }));
+  };
+
+  const guardarCambio = async (campo) => {
+    try {
+      await axiosInstance.put(`/meets/${id}/editar/`, {
+        [campo]: valoresEditados[campo],
+      });
+      const res = await axiosInstance.get(`/meets/${id}/`);
+      setMeet(res.data);
+      setEditando((prev) => ({ ...prev, [campo]: false }));
+    } catch (e) {
+      alert("Error al guardar los cambios.");
+    }
+  };
+
+  const renderEditableCampo = (campo, label, tipo = "text", classes = "") => (
+    <div className={`mb-4 ${classes}`}>
+      <strong>{label}:</strong>{" "}
+      {editando[campo] ? (
+        <span className="flex gap-2 items-center mt-1">
+          <input
+            type={tipo}
+            value={valoresEditados[campo]}
+            onChange={(e) =>
+              setValoresEditados((prev) => ({
+                ...prev,
+                [campo]: e.target.value,
+              }))
+            }
+            className="border px-2 py-1 rounded w-full"
+          />
+          <button onClick={() => guardarCambio(campo)} title="Guardar">✅</button>
+          <button onClick={() => cancelarEdicion(campo)} title="Cancelar">❌</button>
+        </span>
+      ) : (
+        <span className="flex items-center justify-between mt-1">
+          <span>{meet[campo]}</span>
+          {puedeEditar && (
+            <button
+              onClick={() => activarEdicion(campo)}
+              title={`Editar ${label}`}
+              className="ml-2"
+            >
+              ✏️
+            </button>
+          )}
+        </span>
+      )}
+    </div>
+  );
 
   const handleJoin = async () => {
     setJoining(true);
@@ -53,7 +119,7 @@ export default function DetallesMeet() {
       const res = await axiosInstance.get(`/meets/${id}/`);
       setMeet(res.data);
     } catch (e) {
-      alert("No pudiste apuntarte a la meet");
+      alert("No pudiste apuntarte a la meet.");
     } finally {
       setJoining(false);
     }
@@ -66,7 +132,7 @@ export default function DetallesMeet() {
       const res = await axiosInstance.get(`/meets/${id}/`);
       setMeet(res.data);
     } catch (e) {
-      alert("No pudiste desapuntarte de la meet");
+      alert("No pudiste desapuntarte de la meet.");
     } finally {
       setLeaving(false);
     }
@@ -75,11 +141,11 @@ export default function DetallesMeet() {
   const handleDelete = async () => {
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta meet?")) return;
     try {
-      await axiosInstance.delete(`/meets/${id}/delete/`);  // <-- cambio aquí
-      alert("Meet eliminada correctamente");
-      navigate("/meets"); // redirige después de eliminar
+      await axiosInstance.delete(`/meets/${id}/delete/`);
+      alert("Meet eliminada correctamente.");
+      navigate("/meets");
     } catch (e) {
-      alert("Error al eliminar la meet");
+      alert("Error al eliminar la meet.");
     }
   };
 
@@ -106,19 +172,21 @@ export default function DetallesMeet() {
         </button>
       )}
 
-      <h2 className="text-3xl font-bold text-center mb-4">{meet.titulo}</h2>
-      <p className="text-gray-700 text-lg mb-4">{meet.descripcion}</p>
-      <p className="text-gray-800 mb-4">
+      <h2 className="text-3xl font-bold text-center mb-4">
+        {renderEditableCampo("titulo", "Título")}
+      </h2>
+
+      {renderEditableCampo("descripcion", "Descripción", "textarea")}
+      {renderEditableCampo("ubicacion", "Ubicación")}
+
+      <div className="text-gray-800 mb-4">
         <strong>Creador de la meet:</strong> {meet.creador.nombre}
         <img
           src={meet.creador.imagen_perfil}
           alt="Creador"
           className="w-16 h-16 rounded-full inline-block ml-2"
         />
-      </p>
-      <p className="text-gray-800 mb-4">
-        <strong>Lugar:</strong> {meet.ubicacion}
-      </p>
+      </div>
 
       {isLoaded && (
         <GoogleMap

@@ -132,13 +132,7 @@ export default function ProfilePage() {
           onChange={handleFileChange}
           className="w-full p-3 border rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
-        {preview && (
-          <img
-            src={preview}
-            alt="Vista previa"
-            className="mt-4 w-24 h-24 object-cover rounded-full mx-auto border-2 border-gray-300"
-          />
-        )}
+
         {profile.imagen_perfil && typeof profile.imagen_perfil === "string" && (
           <img
             src={`${SERVER_BASE_URL}${profile.imagen_perfil}?${new Date().getTime()}`}

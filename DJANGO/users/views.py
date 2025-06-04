@@ -257,14 +257,37 @@ def anime_detail(request, pk):
         serializer = AnimeSerializer(anime)
         return Response(serializer.data)
 
+    # Validación de permisos para PUT y DELETE
+    try:
+        miembro = request.user.miembro
+    except:
+        return Response({'detail': 'El miembro no existe.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if miembro.role not in ROLES_PERMITIDOS_POST:
+        return Response({'detail': 'No tienes permiso para modificar este anime.'}, status=status.HTTP_403_FORBIDDEN)
+
     if request.method == 'PUT':
         serializer = AnimeSerializer(anime, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            # Procesar géneros si vienen como JSON
+            generos_raw = request.data.get('generos')
+            if generos_raw:
+                try:
+                    generos_ids = json.loads(generos_raw)
+                    generos = Genero.objects.filter(id__in=generos_ids)
+                    anime = serializer.save()
+                    anime.generos.set(generos)
+                    anime.save()
+                except Exception as e:
+                    return Response({'error': 'Error al procesar géneros: ' + str(e)},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    
+    # DELETE
     anime.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -591,6 +614,28 @@ class MeetDestroyView(DestroyAPIView):
 
         return super().delete(request, *args, **kwargs)
 
+class MeetUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Meet.objects.all()
+    serializer_class = MeetSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        meet = self.get_object()
+        user = request.user.miembro
+        if user != meet.creador and getattr(user, 'role', '') not in ['admin', 'root']:
+            return Response({"detail": "No tienes permiso para editar esta meet."}, status=403)
+        return super().put(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.put(request, *args, **kwargs)
+    
+class MeetsUsuarioView(generics.ListAPIView):
+    serializer_class = MeetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        miembro = self.request.user.miembro
+        return Meet.objects.filter(asistentes=miembro).order_by('-creado_en')
 
 # PVP POKEMONS
 

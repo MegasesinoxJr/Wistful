@@ -361,6 +361,27 @@ def valorar_anime(request, anime_id):
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def obtener_valoracion(request, anime_id):
+    try:
+        miembro = Miembro.objects.get(user=request.user.id)
+    except Miembro.DoesNotExist:
+        return Response({'error': 'Perfil de miembro no encontrado'}, status=404)
+
+    try:
+        anime = Anime.objects.get(pk=anime_id)
+    except Anime.DoesNotExist:
+        return Response({'error': 'Anime no encontrado'}, status=404)
+
+    try:
+        valoracion = Valoracion.objects.get(usuario=miembro, anime=anime)
+        serializer = ValoracionSerializer(valoracion)
+        return Response(serializer.data)
+    except Valoracion.DoesNotExist:
+        return Response({'detail': 'Aún no has valorado este anime.'}, status=404)
+
+
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def top_animes(request):
     """
@@ -641,34 +662,57 @@ class MeetsUsuarioView(generics.ListAPIView):
 
 class CombatienteCreateView(generics.GenericAPIView):
     serializer_class = CombatienteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
-    def get(self, request, *args, **kwargs):
+    def get_object(self):
         try:
-            combatiente = Combatiente.objects.get(miembro__user=request.user)
-            serializer = CombatienteSerializer(combatiente)
-            return Response(serializer.data)
+            return Combatiente.objects.get(miembro__user=self.request.user)
         except Combatiente.DoesNotExist:
-            return JsonResponse({"detail": "No tienes un combatiente creado."}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound("No tienes un combatiente creado.")
+
+    def get(self, request, *args, **kwargs):
+        """
+        GET /combatiente/
+        Si existe, devuelve el combatiente del usuario.
+        Si no existe, devuelve 404 con mensaje.
+        """
+        try:
+            combatiente = self.get_object()
+            serializer = self.get_serializer(combatiente)
+            return Response(serializer.data)
+        except NotFound as e:
+            return JsonResponse({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, *args, **kwargs):
-        # Verificar si el usuario ya tiene un combatiente
+        """
+        POST /combatiente/
+        Crea un nuevo combatiente para el usuario autenticado,
+        siempre y cuando no tenga ya uno.
+        """
         miembro = Miembro.objects.get(user=request.user)
         if Combatiente.objects.filter(miembro=miembro).exists():
             raise ValidationError({"detail": "Ya tienes un combatiente creado."})
 
-        # Si no existe, se crea el combatiente
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save(miembro=miembro)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CombatienteDetailView(generics.RetrieveUpdateAPIView):
-    queryset           = Combatiente.objects.all()
-    serializer_class   = CombatienteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def patch(self, request, *args, **kwargs):
+        """
+        PATCH /combatiente/
+        Actualiza parcialmente el combatiente del usuario autenticado.
+        """
+        combatiente = self.get_object()
+        serializer = self.get_serializer(combatiente, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 # GENERAR CONTRASEÑA OLVIDADA:
 

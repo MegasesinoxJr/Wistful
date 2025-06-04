@@ -1,56 +1,52 @@
-import { useState } from "react";
-import axiosInstance from "../axiosInstance";  // Importa el axiosInstance
+import { useEffect, useState } from "react";
+import axiosInstance from "../axiosInstance";
 
 export default function ValorarAnime({ animeId }) {
     const [puntuacion, setPuntuacion] = useState(1);
-    const [mensaje, setMensaje] = useState("");  // Estado para el mensaje
-    const [mostrarMensaje, setMostrarMensaje] = useState(false);  // Estado para controlar la visibilidad del mensaje
+    const [mensaje, setMensaje] = useState("");
+    const [mostrarMensaje, setMostrarMensaje] = useState(false);
 
-    // Emojis correspondientes a las puntuaciones
     const puntuaciones = [
-        "🤢 Horrible",
-        "😞 Muy malo",
-        "😒 Malo",
-        "😐 Mediocre",
-        "🙂 Suficiente",
-        "😊 Bien",
-        "😌 Notable",
-        "😃 Muy Bueno",
-        "😍 Maravilloso",
-        "🤩 Obra maestra"
+        "🤢 Horrible", "😞 Muy malo", "😒 Malo", "😐 Mediocre", "🙂 Suficiente",
+        "😊 Bien", "😌 Notable", "😃 Muy Bueno", "😍 Maravilloso", "🤩 Obra maestra"
     ];
+
+    useEffect(() => {
+        const fetchValoracion = async () => {
+            try {
+                const token = localStorage.getItem("access_token");
+                axiosInstance.defaults.headers["Authorization"] = `Bearer ${token}`;
+                const res = await axiosInstance.get(`animes/${animeId}/valoracion/`);
+                if (res.data.puntuacion) {
+                    setPuntuacion(res.data.puntuacion);
+                }
+            } catch (err) {
+                // Si no hay valoración, no hacemos nada (404 es esperado)
+                if (err.response?.status !== 404) {
+                    console.error("Error al cargar valoración:", err);
+                }
+            }
+        };
+
+        fetchValoracion();
+    }, [animeId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Obtener el access_token desde localStorage
             const token = localStorage.getItem("access_token");
-
-            // Configurar el header Authorization con el token
             axiosInstance.defaults.headers["Authorization"] = `Bearer ${token}`;
 
-            // Realizar la petición con axiosInstance
-            await axiosInstance.post(`animes/${animeId}/valorar/`, {
-                puntuacion,
-            });
+            await axiosInstance.post(`animes/${animeId}/valorar/`, { puntuacion });
 
-            // Mostrar mensaje de éxito
             setMensaje("¡Valoración enviada!");
             setMostrarMensaje(true);
-
-            // Ocultar el mensaje después de 3 segundos
-            setTimeout(() => {
-                setMostrarMensaje(false);
-            }, 3000);
+            setTimeout(() => setMostrarMensaje(false), 3000);
         } catch (err) {
             console.error(err);
             setMensaje("Error al enviar valoración.");
             setMostrarMensaje(true);
-
-            // Ocultar el mensaje después de 3 segundos
-            setTimeout(() => {
-                setMostrarMensaje(false);
-            }, 3000);
+            setTimeout(() => setMostrarMensaje(false), 3000);
         }
     };
 
@@ -61,7 +57,7 @@ export default function ValorarAnime({ animeId }) {
             <div className="relative">
                 <select
                     value={puntuacion}
-                    onChange={(e) => setPuntuacion(e.target.value)}
+                    onChange={(e) => setPuntuacion(Number(e.target.value))}
                     required
                     className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
@@ -72,13 +68,13 @@ export default function ValorarAnime({ animeId }) {
                     ))}
                 </select>
 
-                {/* Emoji con puntuación */}
-                <div class="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600">
-                    <p class="flex -translate-y-[1px] items-center justify-center">{puntuaciones[puntuacion - 1]}</p>
+                <div className="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600">
+                    <p className="flex items-center justify-center">
+                        {puntuaciones[puntuacion - 1]}
+                    </p>
                 </div>
             </div>
 
-            {/* Puntuación */}
             <div className="text-center mt-2 text-xl font-semibold text-blue-600">
                 <span className="bg-yellow-300 px-2 py-1 rounded-md text-lg font-bold">
                     {puntuacion}

@@ -19,6 +19,7 @@ urlpatterns = [
     path('generos/', genero_list, name='genero-list'),
     path('generos/<int:pk>/', genero_detail, name='genero-detail'),
     path('animes/<int:anime_id>/valorar/', valorar_anime, name='valorar-anime'),
+    path("animes/<int:anime_id>/valoracion/", obtener_valoracion),
     path('top-animes/', top_animes, name='top-animes'),
     path('top-usuario/<int:id>/', top_usuario, name='top-usuario'),
     path('usuarios/<int:user_id>/', UserProfileView.as_view(), name='user-profile'),
@@ -37,7 +38,6 @@ urlpatterns = [
 
     #PVP POKEMON
     path('combatiente/', CombatienteCreateView.as_view()),
-    path('combatiente/<int:pk>/', CombatienteDetailView.as_view()),
 
     #GENERAR CONTRASEÑA OLVIDADA
     path("forgot-password/", ForgotPasswordView.as_view()),

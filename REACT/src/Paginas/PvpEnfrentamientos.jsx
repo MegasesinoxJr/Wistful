@@ -184,7 +184,7 @@ export default function PvpEnfrentamientos() {
       <div className="flex items-center space-x-8 mb-6 -mt-8">
         <div className="flex flex-col items-center relative pt-8" >
           <img
-            src={imagenNueva ? URL.createObjectURL(imagenNueva) : `${SERVER_BASE_URL}${combatiente.imagen}`}
+            src={imagenNueva ? URL.createObjectURL(imagenNueva) : `${combatiente.imagen}`}
             alt="Combatiente"
             className={`w-28 h-28 rounded-full shadow-md ${turno === "oponente" ? "animate-pulse" : ""} ${animateAttacker === "combatiente" ? "hit-attack" : ""} ${animateVictim === "oponente" ? "animate-pulse" : ""}`}
           />
@@ -194,7 +194,7 @@ export default function PvpEnfrentamientos() {
         {estado === "battle" && oponente && (
           <div className="flex flex-col items-center relative pt-8">
             <img
-              src={`${SERVER_BASE_URL}${oponente.imagen}`}
+              src={`${oponente.imagen}`}
               alt="Oponente"
               className={`w-28 h-28 rounded-full shadow-md ${turno === "combatiente" ? "animate-pulse" : ""} ${animateAttacker === "oponente" ? "hit-attack" : ""} ${animateVictim === "combatiente" ? "animate-pulse" : ""}`}
             />

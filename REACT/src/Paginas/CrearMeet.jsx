@@ -16,6 +16,8 @@ const defaultCenter = {
 export default function CrearMeet() {
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDesc] = useState('');
+  const [fecha, setFecha] = useState('');
+  const [hora, setHora] = useState('');
   const [maxP, setMaxP] = useState(5);
   const { ready, value, suggestions, setValue, clearSuggestions } = usePlacesAutocomplete();
   const [coords, setCoords] = useState(null);
@@ -51,6 +53,8 @@ export default function CrearMeet() {
         latitud: coords?.lat,
         longitud: coords?.lng,
         max_participantes: maxP,
+        fecha,
+        hora,
       });
       setSuccess('¡Meet creado exitosamente!');
       setTitulo('');
@@ -58,6 +62,8 @@ export default function CrearMeet() {
       setValue('');
       setCoords(null);
       setMaxP(5);
+      setFecha('');
+      setHora('');
     } catch (e) {
       console.error(e);
       alert('Error al crear meet');
@@ -65,98 +71,120 @@ export default function CrearMeet() {
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="mt-14 max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg space-y-6">
-        <h2 className="text-2xl font-semibold text-center text-blue-600">Crear Meet (solo VIP)</h2>
-        
-        {/* Titulo */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Título</label>
-          <input 
-            type="text" 
-            value={titulo} 
-            onChange={(e) => setTitulo(e.target.value)} 
-            placeholder="Título" 
-            required 
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" 
-          />
-        </div>
+    <form onSubmit={handleSubmit} className="mt-14 max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg space-y-6">
+      <h2 className="text-2xl font-semibold text-center text-blue-600">Crear Meet (solo VIP)</h2>
 
-        {/* Descripción */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Descripción</label>
-          <textarea 
-            value={descripcion} 
-            onChange={(e) => setDesc(e.target.value)} 
-            placeholder="Descripción" 
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" 
-          />
-        </div>
+      {/* Título */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Título</label>
+        <input
+          type="text"
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          placeholder="Título"
+          required
+          className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+      </div>
 
-        {/* Ubicación */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Ubicación</label>
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            disabled={!ready}
-            placeholder="Busca dirección"
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-          <ul className="mt-2">
-            {suggestions.status === 'OK' &&
-              suggestions.data.map((s) => (
-                <li 
-                  key={s.place_id} 
-                  onClick={() => onSelectAddress(s.description)} 
-                  className="cursor-pointer p-2 hover:bg-blue-100"
-                >
-                  {s.description}
-                </li>
-              ))}
-          </ul>
-        </div>
+      {/* Descripción */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Descripción</label>
+        <textarea
+          value={descripcion}
+          onChange={(e) => setDesc(e.target.value)}
+          placeholder="Descripción"
+          className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+      </div>
 
-        {/* Mapa */}
-        <div className="mt-6 w-full max-w-4xl mx-auto">
-          {isLoaded && coords && (
-            <GoogleMap mapContainerStyle={mapContainerStyle} zoom={15} center={coords}>
-              <Marker position={coords} />
-            </GoogleMap>
-          )}
-        </div>
+      {/* Fecha */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Fecha</label>
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
+          required
+          className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+      </div>
 
-        {/* Máximo Participantes */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Máximo de Participantes</label>
-          <input 
-            type="number"
-            min="1"
-            value={maxP}
-            onChange={(e) => setMaxP(e.target.value)}
-            placeholder="Máx. participantes"
-            className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
+      {/* Hora */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Hora</label>
+        <input
+          type="time"
+          value={hora}
+          onChange={(e) => setHora(e.target.value)}
+          required
+          className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+      </div>
 
-        {/* Botón de Envío */}
-        <button
-          type="submit"
-          className="w-full py-3 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none"
-        >
-          Crear Meet
-        </button>
+      {/* Ubicación */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Ubicación</label>
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          disabled={!ready}
+          placeholder="Busca dirección"
+          className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+        <ul className="mt-2">
+          {suggestions.status === 'OK' &&
+            suggestions.data.map((s) => (
+              <li
+                key={s.place_id}
+                onClick={() => onSelectAddress(s.description)}
+                className="cursor-pointer p-2 hover:bg-blue-100"
+              >
+                {s.description}
+              </li>
+            ))}
+        </ul>
+      </div>
 
-        {/* Mensaje de éxito */}
-        {success && (
-          <p
-            className="mt-3 text-center text-green-600 bg-green-100 border border-green-400 rounded-md py-2 px-4 font-medium"
-            role="alert"
-          >
-            {success}
-          </p>
+      {/* Mapa */}
+      <div className="mt-6 w-full max-w-4xl mx-auto">
+        {isLoaded && coords && (
+          <GoogleMap mapContainerStyle={mapContainerStyle} zoom={15} center={coords}>
+            <Marker position={coords} />
+          </GoogleMap>
         )}
-      </form>
-    </>
+      </div>
+
+      {/* Máximo Participantes */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Máximo de Participantes</label>
+        <input
+          type="number"
+          min="1"
+          value={maxP}
+          onChange={(e) => setMaxP(e.target.value)}
+          placeholder="Máx. participantes"
+          className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+      </div>
+
+      {/* Botón de Envío */}
+      <button
+        type="submit"
+        className="w-full py-3 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none"
+      >
+        Crear Meet
+      </button>
+
+      {/* Mensaje de éxito */}
+      {success && (
+        <p
+          className="mt-3 text-center text-green-600 bg-green-100 border border-green-400 rounded-md py-2 px-4 font-medium"
+          role="alert"
+        >
+          {success}
+        </p>
+      )}
+    </form>
   );
 }

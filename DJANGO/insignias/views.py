@@ -108,7 +108,7 @@ def obtener_formulario(request, formulario_id):
     except Formulario.DoesNotExist:
         return Response({'error': 'Formulario no encontrado'}, status=404)
     
-@api_view(['PUT'])
+@api_view(['PUT','PATCH'])
 @permission_classes([IsAuthenticated])
 def editar_formulario(request, formulario_id):
     try:

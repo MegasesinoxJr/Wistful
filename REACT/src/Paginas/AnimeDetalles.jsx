@@ -69,13 +69,15 @@ export default function AnimeDetalles() {
   };
 
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("titulo", titulo);
-    formData.append("sinopsis", sinopsis);
-    formData.append("generos", JSON.stringify(generosSeleccionados));
-
     try {
-      const res = await axiosInstance.put(`animes/${id}/`, formData);
+      const payload = {
+        titulo,
+        sinopsis,
+        generos: generosSeleccionados
+      };
+      // Asegúrate de que axiosInstance tenga JSON por defecto
+      axiosInstance.defaults.headers.patch['Content-Type'] = 'application/json';
+      const res = await axiosInstance.patch(`animes/${id}/`, payload);
       setAnime(res.data);
       setEditMode(false);
     } catch (err) {
@@ -89,7 +91,6 @@ export default function AnimeDetalles() {
   return (
     <div className="max-w-4xl mx-auto p-4 mt-14 relative">
 
-      {/* Botón Eliminar */}
       {canEdit && (
         <button
           onClick={() => setShowConfirmDelete(true)}
@@ -100,7 +101,6 @@ export default function AnimeDetalles() {
         </button>
       )}
 
-      {/* Botón Editar */}
       {canEdit && (
         <button
           onClick={handleEditToggle}
@@ -111,7 +111,6 @@ export default function AnimeDetalles() {
         </button>
       )}
 
-      {/* Título */}
       {editMode ? (
         <input
           type="text"
@@ -123,16 +122,14 @@ export default function AnimeDetalles() {
         <h2 className="text-3xl font-semibold text-center mt-12 mb-4">{anime.titulo}</h2>
       )}
 
-      {/* Imagen */}
       <img
         src={`${SERVER_BASE_URL}${anime.imagen}`}
         alt={anime.titulo}
         className="w-72 h-auto object-cover mx-auto mb-6 rounded-lg shadow-lg"
       />
 
-      {/* Sinopsis */}
       <div className="text-lg font-medium mb-2">
-        <strong>Sinopsis:</strong>{" "}
+        <strong>Sinopsis:</strong>{' '}
         {editMode ? (
           <textarea
             value={sinopsis}
@@ -144,7 +141,6 @@ export default function AnimeDetalles() {
         )}
       </div>
 
-      {/* Géneros */}
       {editMode ? (
         <div className="mb-4">
           <strong className="block mb-2">Géneros:</strong>
@@ -169,12 +165,10 @@ export default function AnimeDetalles() {
         )
       )}
 
-      {/* Puntuación */}
       <p className="text-lg font-medium mb-4">
         <strong>Puntuación promedio:</strong> {anime.puntuacion_promedio ?? "—"}
       </p>
 
-      {/* Guardar cambios */}
       {editMode && (
         <button
           onClick={handleSave}
@@ -184,24 +178,19 @@ export default function AnimeDetalles() {
         </button>
       )}
 
-      {/* Valoración */}
       {isLogged && !editMode && (
         <div className="mt-6">
           <ValorarAnime animeId={anime.id} />
         </div>
       )}
 
-      {/* Modal Confirmación Eliminar */}
       {showConfirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full text-center">
             <p className="mb-4 text-lg font-semibold">¿Estás seguro de que quieres eliminar este anime?</p>
             <div className="flex justify-center gap-4">
               <button
-                onClick={async () => {
-                  await handleDelete();
-                  setShowConfirmDelete(false);
-                }}
+                onClick={async () => { await handleDelete(); setShowConfirmDelete(false); }}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
               >
                 Sí, eliminar

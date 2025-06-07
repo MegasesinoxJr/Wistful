@@ -240,12 +240,13 @@ def anime_list(request):
 
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-@parser_classes([MultiPartParser, FormParser])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def anime_detail(request, pk):
     """
     GET    /api/animes/<pk>/   -> Obtener datos de un anime
-    PUT    /api/animes/<pk>/   -> Actualizar un anime
+    PUT    /api/animes/<pk>/   -> Reemplazar un anime completo
+    PATCH  /api/animes/<pk>/   -> Actualizar parcialmente un anime
     DELETE /api/animes/<pk>/   -> Eliminar un anime
     """
     try:
@@ -257,39 +258,33 @@ def anime_detail(request, pk):
         serializer = AnimeSerializer(anime)
         return Response(serializer.data)
 
-    # Validación de permisos para PUT y DELETE
+    # Validación de permisos para modificaciones
     try:
         miembro = request.user.miembro
-    except:
+    except AttributeError:
         return Response({'detail': 'El miembro no existe.'}, status=status.HTTP_404_NOT_FOUND)
 
     if miembro.role not in ROLES_PERMITIDOS_POST:
         return Response({'detail': 'No tienes permiso para modificar este anime.'}, status=status.HTTP_403_FORBIDDEN)
 
-    if request.method == 'PUT':
-        serializer = AnimeSerializer(anime, data=request.data)
+    if request.method in ('PUT', 'PATCH'):
+        # PUT = full update, PATCH = partial update
+        partial = (request.method == 'PATCH')
+        serializer = AnimeSerializer(anime, data=request.data, partial=partial)
         if serializer.is_valid():
-            # Procesar géneros si vienen como JSON
-            generos_raw = request.data.get('generos')
-            if generos_raw:
-                try:
-                    generos_ids = json.loads(generos_raw)
-                    generos = Genero.objects.filter(id__in=generos_ids)
-                    anime = serializer.save()
-                    anime.generos.set(generos)
-                    anime.save()
-                except Exception as e:
-                    return Response({'error': 'Error al procesar géneros: ' + str(e)},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            else:
-                serializer.save()
-            return Response(serializer.data)
-
+            anime = serializer.save()
+            # Procesar géneros enviados como lista de IDs en JSON
+            generos_ids = request.data.get('generos')
+            if isinstance(generos_ids, list):
+                generos = Genero.objects.filter(id__in=generos_ids)
+                anime.generos.set(generos)
+            return Response(AnimeSerializer(anime).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # DELETE
     anime.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 

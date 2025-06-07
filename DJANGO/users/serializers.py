@@ -52,12 +52,17 @@ class AnimeSerializer(serializers.ModelSerializer):
     generos = serializers.SlugRelatedField(
         many=True,
         read_only=True,
-        slug_field='nombre'      
+        slug_field='nombre'
+    )
+    generos_ids = serializers.PrimaryKeyRelatedField(
+        source='generos',
+        many=True,
+        read_only=True
     )
 
     class Meta:
         model = Anime
-        fields = ['id', 'titulo', 'sinopsis', 'imagen', 'generos','puntuacion_promedio']
+        fields = ['id', 'titulo', 'sinopsis', 'imagen', 'generos', 'generos_ids', 'puntuacion_promedio']
 
     def get_puntuacion_promedio(self, obj):
         valoraciones = obj.valoraciones.all()

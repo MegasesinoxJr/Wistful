@@ -13,7 +13,7 @@ from .models import *
 from .serializers import *
 from .permissions import *
 from rest_framework.decorators import api_view, parser_classes, permission_classes
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 import traceback
 import stripe
 from urllib.parse import urlencode

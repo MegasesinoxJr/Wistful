@@ -578,7 +578,7 @@ class MeetListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == "POST":
             # vip, + usuarios administradores pueden crear meet
-            return [IsAuthenticated(), CanCreateMeet()]
+            return [IsAuthenticated(), Edicion()]
         return [AllowAny()]
 
     def perform_create(self, serializer):

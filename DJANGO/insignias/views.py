@@ -4,31 +4,25 @@ from rest_framework.response import Response
 from .models import Formulario, InsigniaObtenida, Pregunta, Respuesta
 from .serializers import FormularioSerializer, InsigniaObtenidaSerializer
 from users.models import Miembro
+from users.permissions import Edicion
 import json
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def listar_formularios(request):
-    # Obtener el usuario logueado
     user = request.user
-
-    # Obtener el miembro relacionado con el usuario
     miembro = Miembro.objects.get(user=user)
 
-    # Obtener las insignias ya obtenidas por el miembro
-    insignias_obtenidas = InsigniaObtenida.objects.filter(miembro=miembro)
+    # Si el rol es colaborador, admin o root, devolver todos los formularios
+    if miembro.rol in ['colaborador', 'admin', 'root']:
+        formularios = Formulario.objects.all()
+    else:
+        # Si es miembro o vip, excluir los ya obtenidos
+        insignias_obtenidas = InsigniaObtenida.objects.filter(miembro=miembro)
+        formularios = Formulario.objects.exclude(id__in=insignias_obtenidas.values('formulario__id'))
 
-    # Obtener todos los formularios
-    formularios = Formulario.objects.all()
-
-    # Filtrar los formularios para excluir aquellos que el miembro ya ha obtenido
-    formularios_no_obtenidos = formularios.exclude(id__in=insignias_obtenidas.values('formulario__id'))
-
-    # Serializar los formularios no obtenidos
-    serializer = FormularioSerializer(formularios_no_obtenidos, many=True)
-    
+    serializer = FormularioSerializer(formularios, many=True)
     return Response(serializer.data)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -71,7 +65,7 @@ def insignias_perfil(request):
     return Response(serializer.data)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated,Edicion])
 def crear_formulario(request):
     miembro = Miembro.objects.get(user=request.user)
     data = request.data
@@ -109,7 +103,7 @@ def obtener_formulario(request, formulario_id):
         return Response({'error': 'Formulario no encontrado'}, status=404)
     
 @api_view(['PUT','PATCH'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated,Edicion])
 def editar_formulario(request, formulario_id):
     try:
         formulario = Formulario.objects.get(pk=formulario_id)

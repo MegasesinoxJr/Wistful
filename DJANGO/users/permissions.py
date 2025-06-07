@@ -25,7 +25,7 @@ class ModificarRoles(permissions.BasePermission):
             return False
         return miembro.role in ('admin', 'root',)
     
-class CanCreateMeet(permissions.BasePermission):
+class Edicion(permissions.BasePermission):
     """
     Sólo permiten crear Meet los usuarios autenticados cuyo miembro.role
     esté en ('vip','colaborador','admin','root').

@@ -22,14 +22,16 @@ export default function DetallesMeet() {
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
-  // Estado único para controlar si estamos en edición de TODOS los campos
+  // Solo un flag global de edición
   const [editando, setEditando] = useState(false);
 
-  // Estado para todos los valores editados
+  // Valores para todos los campos que editamos
   const [valoresEditados, setValoresEditados] = useState({
     titulo: "",
     descripcion: "",
     ubicacion: "",
+    fecha: "",
+    hora: "",
     latitud: null,
     longitud: null,
   });
@@ -58,28 +60,25 @@ export default function DetallesMeet() {
       try {
         const res = await axiosInstance.get(`/meets/${id}/`);
         setMeet(res.data);
-        setMapCoords({
-          lat: res.data.latitud,
-          lng: res.data.longitud,
-        });
-
+        setMapCoords({ lat: res.data.latitud, lng: res.data.longitud });
         setValoresEditados({
           titulo: res.data.titulo,
           descripcion: res.data.descripcion,
           ubicacion: res.data.ubicacion,
+          fecha: res.data.fecha,
+          hora: res.data.hora,
           latitud: res.data.latitud,
           longitud: res.data.longitud,
         });
-
         setValue(res.data.ubicacion);
-      } catch (e) {
+      } catch {
         setError("No se pudo cargar la meet.");
       } finally {
         setLoading(false);
       }
     };
     fetchMeet();
-  }, [id]);
+  }, [id, setValue]);
 
   const puedeEliminar =
     meet &&
@@ -88,34 +87,30 @@ export default function DetallesMeet() {
 
   const puedeEditar = puedeEliminar;
 
-  // Función para activar/desactivar edición completa
   const toggleEdicion = () => {
     if (editando) {
-      // cancelar edición, resetear valores editados al meet original
+      // cancelar: restaurar valores
       setValoresEditados({
         titulo: meet.titulo,
         descripcion: meet.descripcion,
         ubicacion: meet.ubicacion,
+        fecha: meet.fecha,
+        hora: meet.hora,
         latitud: meet.latitud,
         longitud: meet.longitud,
       });
       setValue(meet.ubicacion);
-      setMapCoords({
-        lat: meet.latitud,
-        lng: meet.longitud,
-      });
+      setMapCoords({ lat: meet.latitud, lng: meet.longitud });
     }
     setEditando(!editando);
   };
 
-  // Cuando se selecciona una ubicación nueva desde autocomplete
   const onSelectUbicacion = async (address) => {
     setValue(address, false);
     clearSuggestions();
     const results = await getGeocode({ address });
     const { lat, lng } = await getLatLng(results[0]);
     setMapCoords({ lat, lng });
-
     setValoresEditados((prev) => ({
       ...prev,
       ubicacion: address,
@@ -130,17 +125,16 @@ export default function DetallesMeet() {
         titulo: valoresEditados.titulo,
         descripcion: valoresEditados.descripcion,
         ubicacion: valoresEditados.ubicacion,
+        fecha: valoresEditados.fecha,
+        hora: valoresEditados.hora,
         latitud: valoresEditados.latitud,
         longitud: valoresEditados.longitud,
       };
-
       await axiosInstance.put(`/meets/${id}/editar/`, payload);
-
-      // refrescar datos
       const res = await axiosInstance.get(`/meets/${id}/`);
       setMeet(res.data);
       setEditando(false);
-    } catch (e) {
+    } catch {
       alert("Error al guardar los cambios.");
     }
   };
@@ -150,76 +144,77 @@ export default function DetallesMeet() {
 
   const isFull = meet.asistentes.length >= meet.max_participantes;
   const hasJoined = meet.asistentes.some((a) => {
-    const id = a.miembro?.id ?? a.id;
-    return id?.toString() === userId?.toString();
+    const aid = a.miembro?.id ?? a.id;
+    return aid?.toString() === userId?.toString();
   });
-
   const isCreator = userId?.toString() === meet.creador.id?.toString();
 
   return (
     <div className="relative max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-12">
+      {/* Eliminar */}
       {puedeEliminar && (
         <button
           onClick={async () => {
-            if (!window.confirm("¿Estás seguro de que quieres eliminar esta meet?")) return;
+            if (!window.confirm("¿Eliminar meet?")) return;
             try {
               await axiosInstance.delete(`/meets/${id}/delete/`);
-              alert("Meet eliminada correctamente.");
               navigate("/meets");
-            } catch (e) {
-              alert("Error al eliminar la meet.");
+            } catch {
+              alert("Error al eliminar.");
             }
           }}
-          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center"
-          title="Eliminar meet"
+          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center"
+          title="Eliminar"
         >
           ✕
         </button>
       )}
 
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-3xl font-bold">
-          {editando ? (
-            <input
-              type="text"
-              value={valoresEditados.titulo}
-              onChange={(e) =>
-                setValoresEditados((prev) => ({ ...prev, titulo: e.target.value }))
-              }
-              className="border px-2 py-1 rounded w-full"
-            />
-          ) : (
-            meet.titulo
-          )}
-        </h2>
+      {/* Editar */}
+      {puedeEditar && (
+        <button
+          onClick={toggleEdicion}
+          className="absolute top-4 right-16 text-xl"
+          title={editando ? "Cancelar edición" : "Editar todo"}
+        >
+          {editando ? "❌" : "✏️"}
+        </button>
+      )}
 
-        {puedeEditar && (
-          <button
-            onClick={toggleEdicion}
-            title={editando ? "Cancelar edición" : "Editar"}
-            className="ml-4 text-xl"
-          >
-            {editando ? "❌" : "✏️"}
-          </button>
+      {/* Título */}
+      <h2 className="text-3xl font-bold text-center mb-4">
+        {editando ? (
+          <input
+            type="text"
+            value={valoresEditados.titulo}
+            onChange={(e) =>
+              setValoresEditados((p) => ({ ...p, titulo: e.target.value }))
+            }
+            className="w-full border px-2 py-1 rounded"
+          />
+        ) : (
+          meet.titulo
         )}
-      </div>
+      </h2>
 
+      {/* Descripción */}
       <div className="mb-4">
         <strong>Descripción:</strong>
         {editando ? (
           <textarea
             value={valoresEditados.descripcion}
             onChange={(e) =>
-              setValoresEditados((prev) => ({ ...prev, descripcion: e.target.value }))
+              setValoresEditados((p) => ({ ...p, descripcion: e.target.value }))
             }
-            className="border px-2 py-1 rounded w-full mt-1"
-            rows={4}
+            className="w-full border px-2 py-1 rounded mt-1"
+            rows={3}
           />
         ) : (
           <p className="mt-1">{meet.descripcion}</p>
         )}
       </div>
 
+      {/* Ubicación */}
       <div className="mb-4">
         <strong>Ubicación:</strong>
         {editando ? (
@@ -228,10 +223,10 @@ export default function DetallesMeet() {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               disabled={!ready}
-              placeholder="Busca ubicación"
-              className="border px-2 py-1 rounded w-full mt-1"
+              placeholder="Buscar dirección"
+              className="w-full border px-2 py-1 rounded mt-1"
             />
-            <ul className="border rounded bg-white max-h-32 overflow-y-auto mt-1">
+            <ul className="border rounded bg-white max-h-32 overflow-auto mt-1">
               {suggestions.status === "OK" &&
                 suggestions.data.map((s) => (
                   <li
@@ -243,38 +238,48 @@ export default function DetallesMeet() {
                   </li>
                 ))}
             </ul>
-            {isLoaded && mapCoords && (
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={mapCoords}
-                zoom={15}
-              >
-                <Marker position={mapCoords} />
-              </GoogleMap>
-            )}
           </>
         ) : (
           <p className="mt-1">{meet.ubicacion}</p>
         )}
       </div>
 
-      <div className="text-gray-800 mb-4">
-        <strong>Fecha:</strong> {meet.fecha}
-      </div>
-      <div className="text-gray-800 mb-4">
-        <strong>Hora:</strong> {meet.hora}
+      {/* Fecha y Hora */}
+      <div className="mb-4 flex gap-4">
+        <div className="flex-1">
+          <strong>Fecha:</strong>{" "}
+          {editando ? (
+            <input
+              type="date"
+              value={valoresEditados.fecha}
+              onChange={(e) =>
+                setValoresEditados((p) => ({ ...p, fecha: e.target.value }))
+              }
+              className="border px-2 py-1 rounded mt-1 w-full"
+            />
+          ) : (
+            meet.fecha
+          )}
+        </div>
+        <div className="flex-1">
+          <strong>Hora:</strong>{" "}
+          {editando ? (
+            <input
+              type="time"
+              value={valoresEditados.hora}
+              onChange={(e) =>
+                setValoresEditados((p) => ({ ...p, hora: e.target.value }))
+              }
+              className="border px-2 py-1 rounded mt-1 w-full"
+            />
+          ) : (
+            meet.hora
+          )}
+        </div>
       </div>
 
-      <div className="text-gray-800 mb-4">
-        <strong>Creador de la meet:</strong> {meet.creador.nombre}
-        <img
-          src={meet.creador.imagen_perfil}
-          alt="Creador"
-          className="w-16 h-16 rounded-full inline-block ml-2"
-        />
-      </div>
-
-      {isLoaded && mapCoords && !editando && (
+      {/* Mapa */}
+      {isLoaded && mapCoords && (
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={mapCoords}
@@ -284,49 +289,59 @@ export default function DetallesMeet() {
         </GoogleMap>
       )}
 
+      {/* Guardar / Cancelar */}
       {editando && (
         <div className="flex justify-end gap-4 mt-4">
           <button
             onClick={guardarCambios}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-green-500 text-white px-4 py-2 rounded"
           >
             Guardar
           </button>
           <button
             onClick={toggleEdicion}
-            className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+            className="bg-gray-400 text-white px-4 py-2 rounded"
           >
             Cancelar
           </button>
         </div>
       )}
 
-      <h3 className="text-2xl font-semibold text-gray-800 mt-6 mb-4">
+      {/* Creador */}
+      <div className="text-gray-800 mb-4 mt-6">
+        <strong>Creador:</strong> {meet.creador.nombre}
+        <img
+          src={meet.creador.imagen_perfil}
+          alt="Creador"
+          className="w-16 h-16 rounded-full inline-block ml-2"
+        />
+      </div>
+
+      {/* Asistentes */}
+      <h3 className="text-2xl font-semibold mb-4">
         Asistentes ({meet.asistentes.length}/{meet.max_participantes})
       </h3>
       <div className="flex flex-wrap gap-4 mb-6">
-        {meet.asistentes.map((u, index) => {
-          const miembro = u.miembro || u;
+        {meet.asistentes.map((u, idx) => {
+          const m = u.miembro || u;
           return (
             <div
-              key={miembro.id || index}
-              className="text-center flex flex-col items-center"
-              style={{ width: "72px" }}
+              key={m.id || idx}
+              className="w-20 text-center flex flex-col items-center"
             >
               <img
-                src={miembro.imagen_perfil}
-                alt={miembro.nombre}
-                className="w-16 h-16 rounded-full mb-2"
+                src={m.imagen_perfil}
+                alt={m.nombre}
+                className="w-16 h-16 rounded-full mb-1"
               />
-              <div className="text-sm text-gray-800 truncate w-full">
-                {miembro.nombre}
-              </div>
+              <span className="text-sm truncate">{m.nombre}</span>
             </div>
           );
         })}
       </div>
 
-      {!hasJoined && !isFull && !isCreator && (
+      {/* Botones Unirse/Salir */}
+      {!isCreator && !hasJoined && !isFull && (
         <button
           onClick={async () => {
             setJoining(true);
@@ -334,20 +349,20 @@ export default function DetallesMeet() {
               await axiosInstance.post(`/meets/${id}/asistir/`);
               const res = await axiosInstance.get(`/meets/${id}/`);
               setMeet(res.data);
-            } catch (e) {
-              alert("No pudiste apuntarte a la meet.");
+            } catch {
+              alert("No pudiste apuntarte.");
             } finally {
               setJoining(false);
             }
           }}
           disabled={joining}
-          className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400"
+          className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 disabled:bg-gray-400"
         >
           {joining ? "Apuntando..." : "Apuntarme"}
         </button>
       )}
 
-      {hasJoined && (
+      {hasJoined && !isCreator && (
         <button
           onClick={async () => {
             setLeaving(true);
@@ -355,14 +370,14 @@ export default function DetallesMeet() {
               await axiosInstance.post(`/meets/${id}/desapuntarse/`);
               const res = await axiosInstance.get(`/meets/${id}/`);
               setMeet(res.data);
-            } catch (e) {
-              alert("No pudiste desapuntarte de la meet.");
+            } catch {
+              alert("No pudiste desapuntarte.");
             } finally {
               setLeaving(false);
             }
           }}
           disabled={leaving}
-          className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-400 mt-4"
+          className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 disabled:bg-gray-400 mt-4"
         >
           {leaving ? "Desapuntando..." : "Desapuntarme"}
         </button>
@@ -373,8 +388,7 @@ export default function DetallesMeet() {
           Esta meet está completa.
         </p>
       )}
-
-      {hasJoined && (
+      {hasJoined && !isCreator && (
         <p className="text-green-500 text-center mt-4">¡Ya estás apuntado!</p>
       )}
     </div>

@@ -7,5 +7,6 @@ urlpatterns = [
     path('formularios/<int:formulario_id>/responder/', responder_formulario, name='responder_formulario'),
     path('perfil/insignias/', insignias_perfil),
     path('formularios/create/', crear_formulario),
+    path('formularios/<int:formulario_id>/editar/', actualizar_formulario),
 
 ]

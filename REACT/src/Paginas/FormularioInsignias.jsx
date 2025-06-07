@@ -97,6 +97,7 @@ export default function CrearFormulario() {
           "Content-Type": "multipart/form-data",
         },
       });
+      navigate("/formularios");  // <-- redirige aquí2
       alert("Formulario creado");
     } catch (err) {
       console.error(err);

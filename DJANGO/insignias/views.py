@@ -107,3 +107,39 @@ def obtener_formulario(request, formulario_id):
         return Response(serializer.data)
     except Formulario.DoesNotExist:
         return Response({'error': 'Formulario no encontrado'}, status=404)
+    
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def editar_formulario(request, formulario_id):
+    try:
+        formulario = Formulario.objects.get(pk=formulario_id)
+    except Formulario.DoesNotExist:
+        return Response({'error': 'Formulario no encontrado'}, status=404)
+
+    if formulario.creador.user != request.user:
+        return Response({'error': 'No autorizado'}, status=403)
+
+    data = request.data
+    preguntas = json.loads(data.get('preguntas'))
+
+    formulario.titulo = data.get('titulo')
+    formulario.descripcion = data.get('descripcion')
+    formulario.nombre_insignia = data.get('nombre')
+    formulario.respuestas_necesarias = data.get('respuestas_necesarias')
+    if data.get('imagen'):
+        formulario.imagen = data.get('imagen')
+    formulario.save()
+
+    formulario.preguntas.all().delete()
+
+    for p in preguntas:
+        pregunta = Pregunta.objects.create(formulario=formulario, texto=p['texto'])
+        for r in p['respuestas']:
+            Respuesta.objects.create(
+                pregunta=pregunta,
+                texto=r['texto'],
+                es_correcta=r['es_correcta']
+            )
+
+    return Response({'mensaje': 'Formulario actualizado'})
+

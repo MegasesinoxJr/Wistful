@@ -83,14 +83,9 @@ export const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/insignias/formularios/:id"
-          element={
-            <ProtectedRoute>
-              <ResponderFormulario />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/insignias/editar/:id" element={<EditarFormulario />} />
+
+        <Route path="/insignias/formularios/:id" element={<ProtectedRoute><ResponderFormulario /></ProtectedRoute>}/>
         <Route
           path="/detalles-meet"
           element={

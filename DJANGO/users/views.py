@@ -651,7 +651,7 @@ class MeetsUsuarioView(generics.ListAPIView):
 
     def get_queryset(self):
         miembro = self.request.user.miembro
-        return Meet.objects.filter(asistentes=miembro).order_by('-creado_en')
+        return Meet.objects.filter(asistentes__miembro=miembro).order_by('-creado_en')
 
 # PVP POKEMONS
 

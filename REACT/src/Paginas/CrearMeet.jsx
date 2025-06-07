@@ -70,6 +70,10 @@ export default function CrearMeet() {
     }
   };
 
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0];
+
   return (
     <form onSubmit={handleSubmit} className="mt-14 max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg space-y-6">
       <h2 className="text-2xl font-semibold text-center text-blue-600">Crear Meet (solo VIP)</h2>
@@ -106,6 +110,7 @@ export default function CrearMeet() {
           value={fecha}
           onChange={(e) => setFecha(e.target.value)}
           required
+          min={minDate}
           className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
       </div>

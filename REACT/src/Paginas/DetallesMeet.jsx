@@ -18,7 +18,7 @@ export default function DetallesMeet() {
   // edición global
   const [editando, setEditando] = useState(false);
 
-  // todos los campos editables aquí
+  // todos los campos que envía el PUT
   const [valoresEditados, setValoresEditados] = useState({
     titulo: "",
     descripcion: "",
@@ -72,12 +72,12 @@ export default function DetallesMeet() {
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   const isCreator = meet.creador.id.toString() === userId?.toString();
-  const puedeEliminar = isCreator || ["admin","root"].includes(userRole);
+  const puedeEliminar = isCreator || ["admin", "root"].includes(userRole);
   const puedeEditar = puedeEliminar;
 
   const toggleEdicion = () => {
     if (editando) {
-      // cancelar: restaurar
+      // cancelar edición
       setValoresEditados({
         titulo: meet.titulo,
         descripcion: meet.descripcion,
@@ -100,8 +100,8 @@ export default function DetallesMeet() {
     const results = await getGeocode({ address });
     const { lat, lng } = await getLatLng(results[0]);
     setMapCoords({ lat, lng });
-    setValoresEditados(prev => ({
-      ...prev,
+    setValoresEditados(p => ({
+      ...p,
       ubicacion: address,
       latitud: lat,
       longitud: lng,
@@ -137,7 +137,6 @@ export default function DetallesMeet() {
 
   return (
     <div className="relative max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-12">
-      {/* Eliminar */}
       {puedeEliminar && (
         <button
           onClick={async () => {
@@ -146,13 +145,11 @@ export default function DetallesMeet() {
             navigate("/meets");
           }}
           className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center"
-          title="Eliminar"
         >
           ✕
         </button>
       )}
 
-      {/* Editar todo */}
       {puedeEditar && (
         <button
           onClick={toggleEdicion}
@@ -165,46 +162,43 @@ export default function DetallesMeet() {
 
       {/* Título */}
       <h2 className="text-3xl font-bold text-center mb-4">
-        {editando ? (
-          <input
-            type="text"
-            value={valoresEditados.titulo}
-            onChange={e => setValoresEditados(p => ({ ...p, titulo: e.target.value }))}
-            className="w-full border px-2 py-1 rounded"
-          />
-        ) : meet.titulo}
+        {editando
+          ? <input
+              type="text"
+              value={valoresEditados.titulo}
+              onChange={e => setValoresEditados(p => ({ ...p, titulo: e.target.value }))}
+              className="w-full border px-2 py-1 rounded"
+            />
+          : meet.titulo}
       </h2>
 
       {/* Descripción */}
       <div className="mb-4">
         <strong>Descripción:</strong>
-        {editando ? (
-          <textarea
-            value={valoresEditados.descripcion}
-            onChange={e => setValoresEditados(p => ({ ...p, descripcion: e.target.value }))}
-            className="w-full border px-2 py-1 rounded mt-1"
-            rows={3}
-          />
-        ) : (
-          <p className="mt-1">{meet.descripcion}</p>
-        )}
+        {editando
+          ? <textarea
+              rows={3}
+              value={valoresEditados.descripcion}
+              onChange={e => setValoresEditados(p => ({ ...p, descripcion: e.target.value }))}
+              className="w-full border px-2 py-1 rounded mt-1"
+            />
+          : <p className="mt-1">{meet.descripcion}</p>}
       </div>
 
       {/* Ubicación */}
       <div className="mb-4">
         <strong>Ubicación:</strong>
-        {editando ? (
-          <>
-            <input
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              disabled={!ready}
-              placeholder="Buscar dirección"
-              className="w-full border px-2 py-1 rounded mt-1"
-            />
-            <ul className="border rounded bg-white max-h-32 overflow-auto mt-1">
-              {suggestions.status === "OK" &&
-                suggestions.data.map(s => (
+        {editando
+          ? <>
+              <input
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                disabled={!ready}
+                placeholder="Buscar dirección"
+                className="w-full border px-2 py-1 rounded mt-1"
+              />
+              <ul className="border rounded bg-white max-h-32 overflow-auto mt-1">
+                {suggestions.status === "OK" && suggestions.data.map(s => (
                   <li
                     key={s.place_id}
                     onClick={() => onSelectUbicacion(s.description)}
@@ -213,57 +207,49 @@ export default function DetallesMeet() {
                     {s.description}
                   </li>
                 ))}
-            </ul>
-          </>
-        ) : (
-          <p className="mt-1">{meet.ubicacion}</p>
-        )}
+              </ul>
+            </>
+          : <p className="mt-1">{meet.ubicacion}</p>}
       </div>
 
       {/* Fecha y Hora */}
       <div className="mb-4 flex gap-4">
         <div className="flex-1">
           <strong>Fecha:</strong>{" "}
-          {editando ? (
-            <input
-              type="date"
-              value={valoresEditados.fecha}
-              onChange={e => setValoresEditados(p => ({ ...p, fecha: e.target.value }))}
-              className="w-full border px-2 py-1 rounded mt-1"
-            />
-          ) : (
-            meet.fecha
-          )}
+          {editando
+            ? <input
+                type="date"
+                value={valoresEditados.fecha}
+                onChange={e => setValoresEditados(p => ({ ...p, fecha: e.target.value }))}
+                className="w-full border px-2 py-1 rounded mt-1"
+              />
+            : meet.fecha}
         </div>
         <div className="flex-1">
           <strong>Hora:</strong>{" "}
-          {editando ? (
-            <input
-              type="time"
-              value={valoresEditados.hora}
-              onChange={e => setValoresEditados(p => ({ ...p, hora: e.target.value }))}
-              className="w-full border px-2 py-1 rounded mt-1"
-            />
-          ) : (
-            meet.hora
-          )}
+          {editando
+            ? <input
+                type="time"
+                value={valoresEditados.hora}
+                onChange={e => setValoresEditados(p => ({ ...p, hora: e.target.value }))}
+                className="w-full border px-2 py-1 rounded mt-1"
+              />
+            : meet.hora}
         </div>
       </div>
 
       {/* Máximo Participantes */}
       <div className="mb-4">
         <strong>Máx. participantes:</strong>{" "}
-        {editando ? (
-          <input
-            type="number"
-            min="1"
-            value={valoresEditados.max_participantes}
-            onChange={e => setValoresEditados(p => ({ ...p, max_participantes: +e.target.value }))}
-            className="w-24 border px-2 py-1 rounded mt-1"
-          />
-        ) : (
-          meet.max_participantes
-        )}
+        {editando
+          ? <input
+              type="number"
+              min="1"
+              value={valoresEditados.max_participantes}
+              onChange={e => setValoresEditados(p => ({ ...p, max_participantes: +e.target.value }))}
+              className="w-24 border px-2 py-1 rounded mt-1"
+            />
+          : meet.max_participantes}
       </div>
 
       {/* Mapa */}
@@ -275,19 +261,13 @@ export default function DetallesMeet() {
         </div>
       )}
 
-      {/* Guardar/Cancelar */}
+      {/* Guardar / Cancelar */}
       {editando && (
         <div className="flex justify-end gap-4 mb-6">
-          <button
-            onClick={guardarCambios}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
+          <button onClick={guardarCambios} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
             Guardar
           </button>
-          <button
-            onClick={toggleEdicion}
-            className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-          >
+          <button onClick={toggleEdicion} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
             Cancelar
           </button>
         </div>
@@ -320,15 +300,10 @@ export default function DetallesMeet() {
         <button
           onClick={async () => {
             setJoining(true);
-            try {
-              await axiosInstance.post(`/meets/${id}/asistir/`);
-              const res = await axiosInstance.get(`/meets/${id}/`);
-              setMeet(res.data);
-            } catch {
-              alert("Error al apuntarse.");
-            } finally {
-              setJoining(false);
-            }
+            await axiosInstance.post(`/meets/${id}/asistir/`);
+            const res = await axiosInstance.get(`/meets/${id}/`);
+            setMeet(res.data);
+            setJoining(false);
           }}
           disabled={joining}
           className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 disabled:bg-gray-400"
@@ -336,20 +311,14 @@ export default function DetallesMeet() {
           {joining ? "Apuntando..." : "Apuntarme"}
         </button>
       )}
-
       {hasJoined && !isCreator && (
         <button
           onClick={async () => {
             setLeaving(true);
-            try {
-              await axiosInstance.post(`/meets/${id}/desapuntarse/`);
-              const res = await axiosInstance.get(`/meets/${id}/`);
-              setMeet(res.data);
-            } catch {
-              alert("Error al desapuntarse.");
-            } finally {
-              setLeaving(false);
-            }
+            await axiosInstance.post(`/meets/${id}/desapuntarse/`);
+            const res = await axiosInstance.get(`/meets/${id}/`);
+            setMeet(res.data);
+            setLeaving(false);
           }}
           disabled={leaving}
           className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 disabled:bg-gray-400 mt-4"
@@ -357,13 +326,8 @@ export default function DetallesMeet() {
           {leaving ? "Desapuntando..." : "Desapuntarme"}
         </button>
       )}
-
-      {isFull && !hasJoined && (
-        <p className="text-red-500 text-center mt-4">Esta meet está completa.</p>
-      )}
-      {hasJoined && !isCreator && (
-        <p className="text-green-500 text-center mt-4">¡Ya estás apuntado!</p>
-      )}
+      {isFull && !hasJoined && <p className="text-red-500 text-center mt-4">Esta meet está completa.</p>}
+      {hasJoined && !isCreator && <p className="text-green-500 text-center mt-4">¡Ya estás apuntado!</p>}
     </div>
   );
 }

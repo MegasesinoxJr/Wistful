@@ -70,7 +70,7 @@ export default function DetallesMeet() {
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   const isCreator = meet.creador.id.toString() === userId?.toString();
-  const puedeEliminar = isCreator || ["admin","root"].includes(userRole);
+  const puedeEliminar = isCreator || ["admin", "root"].includes(userRole);
   const puedeEditar = puedeEliminar;
 
   // Toggle edición global
@@ -107,9 +107,23 @@ export default function DetallesMeet() {
       longitud: lng,
     }));
   };
+  function getMinDate() {
+    const date = new Date();
+    date.setDate(date.getDate() + 1); // mínimo 24h en el futuro
+    return date.toISOString().split("T")[0]; // formato YYYY-MM-DD
+  }
 
   // Guardar cambios
   const guardarCambios = async () => {
+    const now = new Date();
+    const selectedDateTime = new Date(`${valoresEditados.fecha}T${valoresEditados.hora}`);
+    const minAllowed = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    if (selectedDateTime < minAllowed) {
+      alert("La fecha y hora deben ser al menos 24 horas en el futuro.");
+      return;
+    }
+
     try {
       const payload = {
         titulo: valoresEditados.titulo,
@@ -163,11 +177,11 @@ export default function DetallesMeet() {
       <h2 className="text-3xl font-bold text-center mb-4">
         {editando
           ? <input
-              type="text"
-              value={valoresEditados.titulo}
-              onChange={e => setValoresEditados(p => ({ ...p, titulo: e.target.value }))}
-              className="w-full border px-2 py-1 rounded"
-            />
+            type="text"
+            value={valoresEditados.titulo}
+            onChange={e => setValoresEditados(p => ({ ...p, titulo: e.target.value }))}
+            className="w-full border px-2 py-1 rounded"
+          />
           : meet.titulo}
       </h2>
 
@@ -176,15 +190,15 @@ export default function DetallesMeet() {
         <strong>Descripción:</strong>
         {editando
           ? <textarea
-              rows={3}
-              value={valoresEditados.descripcion}
-              onChange={e => setValoresEditados(p => ({ ...p, descripcion: e.target.value }))}
-              className="w-full border px-2 py-1 rounded mt-1"
-            />
+            rows={3}
+            value={valoresEditados.descripcion}
+            onChange={e => setValoresEditados(p => ({ ...p, descripcion: e.target.value }))}
+            className="w-full border px-2 py-1 rounded mt-1"
+          />
           : <p className="mt-1">{meet.descripcion}</p>}
       </div>
 
-       {/* Ubicación */}
+      {/* Ubicación */}
       <div className="mb-4">
         <strong>Ubicación:</strong>
         {editando ? (
@@ -223,22 +237,23 @@ export default function DetallesMeet() {
           <strong>Fecha:</strong>
           {editando
             ? <input
-                type="date"
-                value={valoresEditados.fecha}
-                onChange={e => setValoresEditados(p => ({ ...p, fecha: e.target.value }))}
-                className="w-full border px-2 py-1 rounded mt-1"
-              />
+              type="date"
+              value={valoresEditados.fecha}
+              min={getMinDate()}
+              onChange={e => setValoresEditados(p => ({ ...p, fecha: e.target.value }))}
+              className="w-full border px-2 py-1 rounded mt-1"
+            />
             : <span> {meet.fecha}</span>}
         </div>
         <div className="flex-1">
           <strong>Hora:</strong>
           {editando
             ? <input
-                type="time"
-                value={valoresEditados.hora}
-                onChange={e => setValoresEditados(p => ({ ...p, hora: e.target.value }))}
-                className="w-full border px-2 py-1 rounded mt-1"
-              />
+              type="time"
+              value={valoresEditados.hora}
+              onChange={e => setValoresEditados(p => ({ ...p, hora: e.target.value }))}
+              className="w-full border px-2 py-1 rounded mt-1"
+            />
             : <span> {meet.hora}</span>}
         </div>
       </div>
@@ -248,12 +263,12 @@ export default function DetallesMeet() {
         <strong>Máx. participantes:</strong>
         {editando
           ? <input
-              type="number"
-              min="1"
-              value={valoresEditados.max_participantes}
-              onChange={e => setValoresEditados(p => ({ ...p, max_participantes: +e.target.value }))}
-              className="w-24 border px-2 py-1 rounded mt-1"
-            />
+            type="number"
+            min="1"
+            value={valoresEditados.max_participantes}
+            onChange={e => setValoresEditados(p => ({ ...p, max_participantes: +e.target.value }))}
+            className="w-24 border px-2 py-1 rounded mt-1"
+          />
           : <span> {meet.max_participantes}</span>}
       </div>
 

@@ -75,7 +75,7 @@ export default function AnimeDetalles() {
     formData.append("generos", JSON.stringify(generosSeleccionados));
 
     try {
-      const res = await axiosInstance.put(`animes/${id}/`, formData);
+      const res = await axiosInstance.patch(`animes/${id}/`, formData);
       setAnime(res.data);
       setEditMode(false);
     } catch (err) {

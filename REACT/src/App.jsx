@@ -29,6 +29,7 @@ import ResetearPassword from "./Paginas/ResetearPassword";
 import PasswordOlvidada from "./Paginas/PasswordOlvidada";
 import ProtectedRoute from "./Paginas/ProtectedRoute";
 import RoleRoute from "./Paginas/RoleRoute";
+import EditarFormulario from "./Paginas/EditarFormulario";
 
 export const App = () => {
   const [user, setUser] = useState(null);

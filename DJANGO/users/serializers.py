@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from insignias.serializers import InsigniaObtenidaSerializer
 from .models import *
 from django.db.models import Avg
+from datetime import datetime, timedelta
 class RegisterMiembroSerializer(serializers.Serializer):
     nombre = serializers.CharField()
     email = serializers.EmailField()
@@ -105,6 +106,21 @@ class MeetSerializer(serializers.ModelSerializer):
 
     def get_inscritos(self, obj):
         return obj.asistentes.count()
+    
+    def validate(self, data):
+        fecha = data.get("fecha", getattr(self.instance, "fecha", None))
+        hora = data.get("hora", getattr(self.instance, "hora", None))
+
+        if fecha and hora:
+            try:
+                fecha_hora = datetime.fromisoformat(f"{fecha}T{hora}")
+            except ValueError:
+                raise serializers.ValidationError("Formato inválido de fecha u hora.")
+
+            if fecha_hora < datetime.now() + timedelta(hours=24):
+                raise serializers.ValidationError("La fecha y hora deben estar al menos 24 horas en el futuro.")
+
+        return data
     
 #PVP POKEMON
 

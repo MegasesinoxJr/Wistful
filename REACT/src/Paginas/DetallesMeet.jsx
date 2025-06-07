@@ -240,7 +240,20 @@ export default function DetallesMeet() {
               type="date"
               value={valoresEditados.fecha}
               min={getMinDate()}
-              onChange={e => setValoresEditados(p => ({ ...p, fecha: e.target.value }))}
+              onChange={e => {
+                const nueva = e.target.value;
+                const minDate = getMinDate();
+                setValoresEditados(p => ({
+                  ...p,
+                  fecha: nueva < minDate ? minDate : nueva
+                }));
+              }}
+              onBlur={() => {
+                const minDate = getMinDate();
+                if (valoresEditados.fecha < minDate) {
+                  setValoresEditados(p => ({ ...p, fecha: minDate }));
+                }
+              }}
               className="w-full border px-2 py-1 rounded mt-1"
             />
             : <span> {meet.fecha}</span>}

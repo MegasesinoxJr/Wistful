@@ -19,14 +19,8 @@ export default function DetallesMeet() {
   const [meet, setMeet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [joining, setJoining] = useState(false);
-  const [leaving, setLeaving] = useState(false);
 
-  const [editando, setEditando] = useState({
-    titulo: false,
-    descripcion: false,
-    ubicacion: false,
-  });
+  const [editando, setEditando] = useState(false);
   const [valoresEditados, setValoresEditados] = useState({
     titulo: "",
     descripcion: "",
@@ -47,6 +41,7 @@ export default function DetallesMeet() {
   } = usePlacesAutocomplete();
 
   const [mapCoords, setMapCoords] = useState(null);
+  const [ubicacionEditada, setUbicacionEditada] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
@@ -57,6 +52,12 @@ export default function DetallesMeet() {
       try {
         const res = await axiosInstance.get(`/meets/${id}/`);
         setMeet(res.data);
+        setValoresEditados({
+          titulo: res.data.titulo,
+          descripcion: res.data.descripcion,
+          ubicacion: res.data.ubicacion,
+        });
+        setValue(res.data.ubicacion);
         setMapCoords({
           lat: res.data.latitud,
           lng: res.data.longitud,
@@ -70,41 +71,44 @@ export default function DetallesMeet() {
     fetchMeet();
   }, [id]);
 
-  const puedeEliminar =
+  const puedeEditar =
     meet &&
     (userId === meet.creador.id ||
       ["admin", "root", "colaborador"].includes(userRole));
 
-  const puedeEditar = puedeEliminar;
-
-  const activarEdicion = (campo) => {
-    setEditando((prev) => ({ ...prev, [campo]: true }));
-    if (campo === "ubicacion") {
-      setValue(meet.ubicacion);
-    } else {
-      setValoresEditados((prev) => ({ ...prev, [campo]: meet[campo] }));
-    }
+  const activarEdicion = () => {
+    setEditando(true);
   };
 
-  const cancelarEdicion = (campo) => {
-    setEditando((prev) => ({ ...prev, [campo]: false }));
+  const cancelarEdicion = () => {
+    setEditando(false);
+    setValoresEditados({
+      titulo: meet.titulo,
+      descripcion: meet.descripcion,
+      ubicacion: meet.ubicacion,
+    });
+    setValue(meet.ubicacion);
+    setUbicacionEditada(false);
   };
 
-  const guardarCambio = async (campo) => {
+  const guardarCambios = async () => {
     try {
-      const payload = {};
-      if (campo === "ubicacion") {
+      const payload = {
+        titulo: valoresEditados.titulo,
+        descripcion: valoresEditados.descripcion,
+      };
+
+      if (ubicacionEditada && mapCoords) {
         payload.ubicacion = value;
         payload.latitud = mapCoords.lat;
         payload.longitud = mapCoords.lng;
-      } else {
-        payload[campo] = valoresEditados[campo];
       }
 
       await axiosInstance.put(`/meets/${id}/editar/`, payload);
       const res = await axiosInstance.get(`/meets/${id}/`);
       setMeet(res.data);
-      setEditando((prev) => ({ ...prev, [campo]: false }));
+      setEditando(false);
+      setUbicacionEditada(false);
     } catch (e) {
       alert("Error al guardar los cambios.");
     }
@@ -116,164 +120,106 @@ export default function DetallesMeet() {
     const results = await getGeocode({ address });
     const { lat, lng } = await getLatLng(results[0]);
     setMapCoords({ lat, lng });
-  };
-
-  const renderEditableCampo = (campo, label, tipo = "text", classes = "") => (
-    <div className={`mb-4 ${classes}`}>
-      <strong>{label}:</strong>{" "}
-      {editando[campo] ? (
-        <span className="flex flex-col gap-2 mt-2">
-          {campo === "ubicacion" ? (
-            <>
-              <input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                disabled={!ready}
-                placeholder="Busca ubicación"
-                className="border px-2 py-1 rounded w-full"
-              />
-              <ul className="border rounded bg-white max-h-32 overflow-y-auto">
-                {suggestions.status === "OK" &&
-                  suggestions.data.map((s) => (
-                    <li
-                      key={s.place_id}
-                      onClick={() => onSelectUbicacion(s.description)}
-                      className="p-2 cursor-pointer hover:bg-gray-100"
-                    >
-                      {s.description}
-                    </li>
-                  ))}
-              </ul>
-              {isLoaded && mapCoords && (
-                <GoogleMap
-                  mapContainerStyle={mapContainerStyle}
-                  center={mapCoords}
-                  zoom={15}
-                >
-                  <Marker position={mapCoords} />
-                </GoogleMap>
-              )}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => guardarCambio(campo)}
-                  title="Guardar"
-                >
-                  ✅
-                </button>
-                <button
-                  onClick={() => cancelarEdicion(campo)}
-                  title="Cancelar"
-                >
-                  ❌
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex gap-2 items-center">
-              <input
-                type={tipo}
-                value={valoresEditados[campo]}
-                onChange={(e) =>
-                  setValoresEditados((prev) => ({
-                    ...prev,
-                    [campo]: e.target.value,
-                  }))
-                }
-                className="border px-2 py-1 rounded w-full"
-              />
-              <button onClick={() => guardarCambio(campo)} title="Guardar">
-                ✅
-              </button>
-              <button onClick={() => cancelarEdicion(campo)} title="Cancelar">
-                ❌
-              </button>
-            </div>
-          )}
-        </span>
-      ) : (
-        <span className="flex items-center justify-between mt-1">
-          <span>{meet[campo]}</span>
-          {puedeEditar && (
-            <button
-              onClick={() => activarEdicion(campo)}
-              title={`Editar ${label}`}
-              className="ml-2"
-            >
-              ✏️
-            </button>
-          )}
-        </span>
-      )}
-    </div>
-  );
-
-  const handleJoin = async () => {
-    setJoining(true);
-    try {
-      await axiosInstance.post(`/meets/${id}/asistir/`);
-      const res = await axiosInstance.get(`/meets/${id}/`);
-      setMeet(res.data);
-    } catch (e) {
-      alert("No pudiste apuntarte a la meet.");
-    } finally {
-      setJoining(false);
-    }
-  };
-
-  const handleLeave = async () => {
-    setLeaving(true);
-    try {
-      await axiosInstance.post(`/meets/${id}/desapuntarse/`);
-      const res = await axiosInstance.get(`/meets/${id}/`);
-      setMeet(res.data);
-    } catch (e) {
-      alert("No pudiste desapuntarte de la meet.");
-    } finally {
-      setLeaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar esta meet?"))
-      return;
-    try {
-      await axiosInstance.delete(`/meets/${id}/delete/`);
-      alert("Meet eliminada correctamente.");
-      navigate("/meets");
-    } catch (e) {
-      alert("Error al eliminar la meet.");
-    }
+    setUbicacionEditada(true);
   };
 
   if (loading) return <p className="text-center text-xl">Cargando...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
-  const isFull = meet.asistentes.length >= meet.max_participantes;
-  const hasJoined = meet.asistentes.some((a) => {
-    const id = a.miembro?.id ?? a.id;
-    return id?.toString() === userId?.toString();
-  });
-
-  const isCreator = userId?.toString() === meet.creador.id?.toString();
-
   return (
     <div className="relative max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-12">
-      {puedeEliminar && (
+      {puedeEditar && !editando && (
         <button
-          onClick={handleDelete}
-          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center"
-          title="Eliminar meet"
+          onClick={activarEdicion}
+          className="absolute top-4 right-4 text-blue-600 hover:text-blue-800"
+          title="Editar meet"
         >
-          ✕
+          ✏️ Editar
         </button>
       )}
 
+      {editando && (
+        <div className="absolute top-4 right-4 flex gap-2">
+          <button
+            onClick={guardarCambios}
+            className="bg-green-500 text-white px-2 py-1 rounded"
+          >
+            Guardar
+          </button>
+          <button
+            onClick={cancelarEdicion}
+            className="bg-gray-400 text-white px-2 py-1 rounded"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
+
       <h2 className="text-3xl font-bold text-center mb-4">
-        {renderEditableCampo("titulo", "Título")}
+        {editando ? (
+          <input
+            value={valoresEditados.titulo}
+            onChange={(e) =>
+              setValoresEditados((prev) => ({
+                ...prev,
+                titulo: e.target.value,
+              }))
+            }
+            className="border px-2 py-1 rounded w-full"
+          />
+        ) : (
+          meet.titulo
+        )}
       </h2>
 
-      {renderEditableCampo("descripcion", "Descripción", "textarea")}
-      {renderEditableCampo("ubicacion", "Ubicación")}
+      <div className="mb-4">
+        <strong>Descripción:</strong>{" "}
+        {editando ? (
+          <textarea
+            value={valoresEditados.descripcion}
+            onChange={(e) =>
+              setValoresEditados((prev) => ({
+                ...prev,
+                descripcion: e.target.value,
+              }))
+            }
+            className="border px-2 py-1 rounded w-full"
+          />
+        ) : (
+          <p>{meet.descripcion}</p>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <strong>Ubicación:</strong>
+        {editando ? (
+          <div>
+            <input
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setUbicacionEditada(true);
+              }}
+              disabled={!ready}
+              className="border px-2 py-1 rounded w-full"
+            />
+            <ul className="border rounded bg-white max-h-32 overflow-y-auto">
+              {suggestions.status === "OK" &&
+                suggestions.data.map((s) => (
+                  <li
+                    key={s.place_id}
+                    onClick={() => onSelectUbicacion(s.description)}
+                    className="p-2 cursor-pointer hover:bg-gray-100"
+                  >
+                    {s.description}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ) : (
+          <p>{meet.ubicacion}</p>
+        )}
+      </div>
 
       <div className="text-gray-800 mb-4">
         <strong>Fecha:</strong> {meet.fecha}
@@ -283,7 +229,7 @@ export default function DetallesMeet() {
       </div>
 
       <div className="text-gray-800 mb-4">
-        <strong>Creador de la meet:</strong> {meet.creador.nombre}
+        <strong>Creador:</strong> {meet.creador.nombre}
         <img
           src={meet.creador.imagen_perfil}
           alt="Creador"
@@ -299,57 +245,6 @@ export default function DetallesMeet() {
         >
           <Marker position={mapCoords} />
         </GoogleMap>
-      )}
-
-      <h3 className="text-2xl font-semibold text-gray-800 mt-6 mb-4">
-        Asistentes ({meet.asistentes.length}/{meet.max_participantes})
-      </h3>
-      <div className="flex flex-wrap gap-4 mb-6">
-        {meet.asistentes.map((u, index) => {
-          const miembro = u.miembro || u;
-          return (
-            <div key={miembro.id || index} className="text-center">
-              <img
-                src={miembro.imagen_perfil}
-                alt={miembro.nombre}
-                className="w-16 h-16 rounded-full mb-2 mx-auto"
-              />
-              <div className="text-sm text-gray-800">{miembro.nombre}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {!hasJoined && !isFull && !isCreator && (
-        <button
-          onClick={handleJoin}
-          disabled={joining}
-          className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400"
-        >
-          {joining ? "Apuntando..." : "Apuntarme"}
-        </button>
-      )}
-
-      {hasJoined && (
-        <button
-          onClick={handleLeave}
-          disabled={leaving}
-          className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-400 mt-4"
-        >
-          {leaving ? "Desapuntando..." : "Desapuntarme"}
-        </button>
-      )}
-
-      {isFull && !hasJoined && (
-        <p className="text-red-500 text-center mt-4">
-          Esta meet está completa.
-        </p>
-      )}
-
-      {hasJoined && (
-        <p className="text-green-500 text-center mt-4">
-          ¡Ya estás apuntado!
-        </p>
       )}
     </div>
   );

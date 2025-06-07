@@ -9,16 +9,14 @@ const mapContainerStyle = { width: "100%", height: "300px" };
 export default function DetallesMeet() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [meet, setMeet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
-  // edición global
   const [editando, setEditando] = useState(false);
-
-  // todos los campos que envía el PUT
   const [valoresEditados, setValoresEditados] = useState({
     titulo: "",
     descripcion: "",
@@ -34,7 +32,6 @@ export default function DetallesMeet() {
     googleMapsApiKey: "AIzaSyBR1j1rzVOBpHuNDfPuO65PoycVt02vuBU",
     libraries: ["places"],
   });
-
   const { ready, value, suggestions, setValue, clearSuggestions } = usePlacesAutocomplete();
   const [mapCoords, setMapCoords] = useState(null);
 
@@ -42,6 +39,7 @@ export default function DetallesMeet() {
   const userId = user.id;
   const userRole = user.role;
 
+  // Carga inicial
   useEffect(() => {
     async function fetchMeet() {
       try {
@@ -72,12 +70,13 @@ export default function DetallesMeet() {
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   const isCreator = meet.creador.id.toString() === userId?.toString();
-  const puedeEliminar = isCreator || ["admin", "root"].includes(userRole);
+  const puedeEliminar = isCreator || ["admin","root"].includes(userRole);
   const puedeEditar = puedeEliminar;
 
+  // Toggle edición global
   const toggleEdicion = () => {
     if (editando) {
-      // cancelar edición
+      // restaurar valores originales al cancelar
       setValoresEditados({
         titulo: meet.titulo,
         descripcion: meet.descripcion,
@@ -94,6 +93,7 @@ export default function DetallesMeet() {
     setEditando(!editando);
   };
 
+  // Selección de ubicación
   const onSelectUbicacion = async (address) => {
     setValue(address, false);
     clearSuggestions();
@@ -108,6 +108,7 @@ export default function DetallesMeet() {
     }));
   };
 
+  // Guardar cambios
   const guardarCambios = async () => {
     try {
       const payload = {
@@ -120,7 +121,7 @@ export default function DetallesMeet() {
         longitud: valoresEditados.longitud,
         max_participantes: valoresEditados.max_participantes,
       };
-      await axiosInstance.put(`/meets/${id}/editar/`, payload);
+      await axiosInstance.patch(`/meets/${id}/editar/`, payload);
       const res = await axiosInstance.get(`/meets/${id}/`);
       setMeet(res.data);
       setEditando(false);
@@ -137,6 +138,7 @@ export default function DetallesMeet() {
 
   return (
     <div className="relative max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-12">
+      {/* Botón Eliminar */}
       {puedeEliminar && (
         <button
           onClick={async () => {
@@ -145,19 +147,16 @@ export default function DetallesMeet() {
             navigate("/meets");
           }}
           className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center"
-        >
-          ✕
-        </button>
+        >✕</button>
       )}
 
+      {/* Botón Editar global */}
       {puedeEditar && (
         <button
           onClick={toggleEdicion}
           className="absolute top-4 right-16 text-xl"
           title={editando ? "Cancelar edición" : "Editar todo"}
-        >
-          {editando ? "❌" : "✏️"}
-        </button>
+        >{editando ? "❌" : "✏️"}</button>
       )}
 
       {/* Título */}
@@ -198,24 +197,23 @@ export default function DetallesMeet() {
                 className="w-full border px-2 py-1 rounded mt-1"
               />
               <ul className="border rounded bg-white max-h-32 overflow-auto mt-1">
-                {suggestions.status === "OK" && suggestions.data.map(s => (
-                  <li
-                    key={s.place_id}
-                    onClick={() => onSelectUbicacion(s.description)}
-                    className="p-2 cursor-pointer hover:bg-gray-100"
-                  >
-                    {s.description}
-                  </li>
-                ))}
+                {suggestions.status === "OK" &&
+                  suggestions.data.map(s => (
+                    <li
+                      key={s.place_id}
+                      onClick={() => onSelectUbicacion(s.description)}
+                      className="p-2 cursor-pointer hover:bg-gray-100"
+                    >{s.description}</li>
+                  ))}
               </ul>
             </>
           : <p className="mt-1">{meet.ubicacion}</p>}
       </div>
 
-      {/* Fecha y Hora */}
+      {/* Fecha y Hora (justo aquí, sin moverse) */}
       <div className="mb-4 flex gap-4">
         <div className="flex-1">
-          <strong>Fecha:</strong>{" "}
+          <strong>Fecha:</strong>
           {editando
             ? <input
                 type="date"
@@ -223,10 +221,10 @@ export default function DetallesMeet() {
                 onChange={e => setValoresEditados(p => ({ ...p, fecha: e.target.value }))}
                 className="w-full border px-2 py-1 rounded mt-1"
               />
-            : meet.fecha}
+            : <span> {meet.fecha}</span>}
         </div>
         <div className="flex-1">
-          <strong>Hora:</strong>{" "}
+          <strong>Hora:</strong>
           {editando
             ? <input
                 type="time"
@@ -234,13 +232,13 @@ export default function DetallesMeet() {
                 onChange={e => setValoresEditados(p => ({ ...p, hora: e.target.value }))}
                 className="w-full border px-2 py-1 rounded mt-1"
               />
-            : meet.hora}
+            : <span> {meet.hora}</span>}
         </div>
       </div>
 
       {/* Máximo Participantes */}
       <div className="mb-4">
-        <strong>Máx. participantes:</strong>{" "}
+        <strong>Máx. participantes:</strong>
         {editando
           ? <input
               type="number"
@@ -249,10 +247,10 @@ export default function DetallesMeet() {
               onChange={e => setValoresEditados(p => ({ ...p, max_participantes: +e.target.value }))}
               className="w-24 border px-2 py-1 rounded mt-1"
             />
-          : meet.max_participantes}
+          : <span> {meet.max_participantes}</span>}
       </div>
 
-      {/* Mapa */}
+      {/* Mapa (una sola vez, debajo de todo) */}
       {isLoaded && mapCoords && (
         <div className="mb-4">
           <GoogleMap mapContainerStyle={mapContainerStyle} center={mapCoords} zoom={15}>
@@ -261,7 +259,7 @@ export default function DetallesMeet() {
         </div>
       )}
 
-      {/* Guardar / Cancelar */}
+      {/* Botones Guardar/Cancelar */}
       {editando && (
         <div className="flex justify-end gap-4 mb-6">
           <button onClick={guardarCambios} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
@@ -307,9 +305,7 @@ export default function DetallesMeet() {
           }}
           disabled={joining}
           className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 disabled:bg-gray-400"
-        >
-          {joining ? "Apuntando..." : "Apuntarme"}
-        </button>
+        >{joining ? "Apuntando..." : "Apuntarme"}</button>
       )}
       {hasJoined && !isCreator && (
         <button
@@ -322,9 +318,7 @@ export default function DetallesMeet() {
           }}
           disabled={leaving}
           className="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 disabled:bg-gray-400 mt-4"
-        >
-          {leaving ? "Desapuntando..." : "Desapuntarme"}
-        </button>
+        >{leaving ? "Desapuntando..." : "Desapuntarme"}</button>
       )}
       {isFull && !hasJoined && <p className="text-red-500 text-center mt-4">Esta meet está completa.</p>}
       {hasJoined && !isCreator && <p className="text-green-500 text-center mt-4">¡Ya estás apuntado!</p>}

@@ -1,7 +1,7 @@
 // src/components/EditarFormulario.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axiosInstanceFormularios from "../axios/axiosInstanceFormularios";
+import axiosInstanceInsignias from "../axiosInstanceFormularios";
 
 const EditarFormulario = () => {
   const { formularioId } = useParams();
@@ -19,7 +19,7 @@ const EditarFormulario = () => {
   useEffect(() => {
     const fetchFormulario = async () => {
       try {
-        const response = await axiosInstanceFormularios.get(`${formularioId}/`);
+        const response = await axiosInstanceInsignias.get(`${formularioId}/`);
         setFormulario({
           titulo: response.data.titulo,
           descripcion: response.data.descripcion,
@@ -45,7 +45,7 @@ const EditarFormulario = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstanceFormularios.patch(`${formularioId}/`, formulario);
+      await axiosInstanceInsignias.patch(`${formularioId}/`, formulario);
       alert("Formulario actualizado con éxito.");
       navigate("/formularios");
     } catch (err) {

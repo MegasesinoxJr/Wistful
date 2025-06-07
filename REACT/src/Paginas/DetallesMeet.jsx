@@ -238,25 +238,18 @@ export default function DetallesMeet() {
           {editando
             ? <input
               type="date"
-              value={valoresEditados.fecha}
+              value={valoresEditados.fecha || getMinDate()}
               min={getMinDate()}
               onChange={e => {
                 const nueva = e.target.value;
                 const minDate = getMinDate();
-                setValoresEditados(p => ({
-                  ...p,
-                  fecha: nueva < minDate ? minDate : nueva
-                }));
-              }}
-              onBlur={() => {
-                const minDate = getMinDate();
-                if (valoresEditados.fecha < minDate) {
-                  setValoresEditados(p => ({ ...p, fecha: minDate }));
-                }
+                const fechaFinal = nueva < minDate ? minDate : nueva;
+                setValoresEditados(p => ({ ...p, fecha: fechaFinal }));
               }}
               className="w-full border px-2 py-1 rounded mt-1"
             />
             : <span> {meet.fecha}</span>}
+
         </div>
         <div className="flex-1">
           <strong>Hora:</strong>

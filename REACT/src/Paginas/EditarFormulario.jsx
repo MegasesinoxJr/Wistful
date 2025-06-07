@@ -19,7 +19,7 @@ const EditarFormulario = () => {
   useEffect(() => {
     const fetchFormulario = async () => {
       try {
-        const response = await axiosInstanceInsignias.get(`${formularioId}/`);
+        const response = await axiosInstanceInsignias.get(`formularios/${formularioId}/`);
         setFormulario({
           titulo: response.data.titulo,
           descripcion: response.data.descripcion,
@@ -45,9 +45,9 @@ const EditarFormulario = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstanceInsignias.patch(`${formularioId}/`, formulario);
+      await axiosInstanceInsignias.patch(`formularios/${formularioId}/`, formulario);
       alert("Formulario actualizado con éxito.");
-      navigate("/formularios");
+      navigate("/insignias"); // Cambiado de "/formularios"
     } catch (err) {
       console.error(err);
       alert("Error al actualizar el formulario.");
@@ -58,8 +58,8 @@ const EditarFormulario = () => {
   if (error) return <p>{error}</p>;
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Editar Formulario</h2>
+    <div className="max-w-xl mx-auto p-4 pt-24">
+      <h2 className="text-2xl font-bold mb-4 text-center">Editar Formulario</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block mb-1">Título</label>

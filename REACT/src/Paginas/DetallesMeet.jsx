@@ -184,30 +184,37 @@ export default function DetallesMeet() {
           : <p className="mt-1">{meet.descripcion}</p>}
       </div>
 
-      {/* Ubicación */}
+       {/* Ubicación */}
       <div className="mb-4">
         <strong>Ubicación:</strong>
-        {editando
-          ? <>
-              <input
-                value={value}
-                onChange={e => setValue(e.target.value)}
-                disabled={!ready}
-                placeholder="Buscar dirección"
-                className="w-full border px-2 py-1 rounded mt-1"
-              />
-              <ul className="border rounded bg-white max-h-32 overflow-auto mt-1">
-                {suggestions.status === "OK" &&
-                  suggestions.data.map(s => (
-                    <li
-                      key={s.place_id}
-                      onClick={() => onSelectUbicacion(s.description)}
-                      className="p-2 cursor-pointer hover:bg-gray-100"
-                    >{s.description}</li>
-                  ))}
-              </ul>
-            </>
-          : <p className="mt-1">{meet.ubicacion}</p>}
+        {editando ? (
+          <>
+            <input
+              value={value}
+              onChange={e => {
+                setValue(e.target.value);
+                setValoresEditados(p => ({ ...p, ubicacion: e.target.value }));
+              }}
+              disabled={!ready}
+              placeholder="Buscar dirección"
+              className="w-full border px-2 py-1 rounded mt-1"
+            />
+            <ul className="border rounded bg-white max-h-32 overflow-auto mt-1">
+              {suggestions.status === "OK" &&
+                suggestions.data.map(s => (
+                  <li
+                    key={s.place_id}
+                    onClick={() => onSelectUbicacion(s.description)}
+                    className="p-2 cursor-pointer hover:bg-gray-100"
+                  >
+                    {s.description}
+                  </li>
+                ))}
+            </ul>
+          </>
+        ) : (
+          <p className="mt-1">{meet.ubicacion}</p>
+        )}
       </div>
 
       {/* Fecha y Hora (justo aquí, sin moverse) */}

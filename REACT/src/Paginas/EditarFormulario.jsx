@@ -102,7 +102,7 @@ export default function EditarFormulario() {
       if (imagen) formData.append("imagen", imagen);
       formData.append("preguntas", JSON.stringify(preguntas));
 
-      await axiosInstanceInsignias.patch(`formularios/${formularioId}/`, formData, {
+      await axiosInstanceInsignias.patch(`formularios/${formularioId}/editar`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       alert("Formulario actualizado.");

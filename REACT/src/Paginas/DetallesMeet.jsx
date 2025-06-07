@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../axiosInstance";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  useLoadScript,
+} from "@react-google-maps/api";
+import usePlacesAutocomplete, {
+  getGeocode,
+  getLatLng,
+} from "use-places-autocomplete";
 
 const mapContainerStyle = { width: "100%", height: "300px" };
 
@@ -27,7 +35,18 @@ export default function DetallesMeet() {
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: "AIzaSyBR1j1rzVOBpHuNDfPuO65PoycVt02vuBU",
+    libraries: ["places"],
   });
+
+  const {
+    ready,
+    value,
+    suggestions,
+    setValue,
+    clearSuggestions,
+  } = usePlacesAutocomplete();
+
+  const [mapCoords, setMapCoords] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
@@ -38,6 +57,10 @@ export default function DetallesMeet() {
       try {
         const res = await axiosInstance.get(`/meets/${id}/`);
         setMeet(res.data);
+        setMapCoords({
+          lat: res.data.latitud,
+          lng: res.data.longitud,
+        });
       } catch (e) {
         setError("No se pudo cargar la meet.");
       } finally {
@@ -56,7 +79,11 @@ export default function DetallesMeet() {
 
   const activarEdicion = (campo) => {
     setEditando((prev) => ({ ...prev, [campo]: true }));
-    setValoresEditados((prev) => ({ ...prev, [campo]: meet[campo] }));
+    if (campo === "ubicacion") {
+      setValue(meet.ubicacion);
+    } else {
+      setValoresEditados((prev) => ({ ...prev, [campo]: meet[campo] }));
+    }
   };
 
   const cancelarEdicion = (campo) => {
@@ -65,9 +92,16 @@ export default function DetallesMeet() {
 
   const guardarCambio = async (campo) => {
     try {
-      await axiosInstance.put(`/meets/${id}/editar/`, {
-        [campo]: valoresEditados[campo],
-      });
+      const payload = {};
+      if (campo === "ubicacion") {
+        payload.ubicacion = value;
+        payload.latitud = mapCoords.lat;
+        payload.longitud = mapCoords.lng;
+      } else {
+        payload[campo] = valoresEditados[campo];
+      }
+
+      await axiosInstance.put(`/meets/${id}/editar/`, payload);
       const res = await axiosInstance.get(`/meets/${id}/`);
       setMeet(res.data);
       setEditando((prev) => ({ ...prev, [campo]: false }));
@@ -76,24 +110,85 @@ export default function DetallesMeet() {
     }
   };
 
+  const onSelectUbicacion = async (address) => {
+    setValue(address, false);
+    clearSuggestions();
+    const results = await getGeocode({ address });
+    const { lat, lng } = await getLatLng(results[0]);
+    setMapCoords({ lat, lng });
+  };
+
   const renderEditableCampo = (campo, label, tipo = "text", classes = "") => (
     <div className={`mb-4 ${classes}`}>
       <strong>{label}:</strong>{" "}
       {editando[campo] ? (
-        <span className="flex gap-2 items-center mt-1">
-          <input
-            type={tipo}
-            value={valoresEditados[campo]}
-            onChange={(e) =>
-              setValoresEditados((prev) => ({
-                ...prev,
-                [campo]: e.target.value,
-              }))
-            }
-            className="border px-2 py-1 rounded w-full"
-          />
-          <button onClick={() => guardarCambio(campo)} title="Guardar">✅</button>
-          <button onClick={() => cancelarEdicion(campo)} title="Cancelar">❌</button>
+        <span className="flex flex-col gap-2 mt-2">
+          {campo === "ubicacion" ? (
+            <>
+              <input
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                disabled={!ready}
+                placeholder="Busca ubicación"
+                className="border px-2 py-1 rounded w-full"
+              />
+              <ul className="border rounded bg-white max-h-32 overflow-y-auto">
+                {suggestions.status === "OK" &&
+                  suggestions.data.map((s) => (
+                    <li
+                      key={s.place_id}
+                      onClick={() => onSelectUbicacion(s.description)}
+                      className="p-2 cursor-pointer hover:bg-gray-100"
+                    >
+                      {s.description}
+                    </li>
+                  ))}
+              </ul>
+              {isLoaded && mapCoords && (
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={mapCoords}
+                  zoom={15}
+                >
+                  <Marker position={mapCoords} />
+                </GoogleMap>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => guardarCambio(campo)}
+                  title="Guardar"
+                >
+                  ✅
+                </button>
+                <button
+                  onClick={() => cancelarEdicion(campo)}
+                  title="Cancelar"
+                >
+                  ❌
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <input
+                type={tipo}
+                value={valoresEditados[campo]}
+                onChange={(e) =>
+                  setValoresEditados((prev) => ({
+                    ...prev,
+                    [campo]: e.target.value,
+                  }))
+                }
+                className="border px-2 py-1 rounded w-full"
+              />
+              <button onClick={() => guardarCambio(campo)} title="Guardar">
+                ✅
+              </button>
+              <button onClick={() => cancelarEdicion(campo)} title="Cancelar">
+                ❌
+              </button>
+            </div>
+          )}
         </span>
       ) : (
         <span className="flex items-center justify-between mt-1">
@@ -139,7 +234,8 @@ export default function DetallesMeet() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar esta meet?")) return;
+    if (!window.confirm("¿Estás seguro de que quieres eliminar esta meet?"))
+      return;
     try {
       await axiosInstance.delete(`/meets/${id}/delete/`);
       alert("Meet eliminada correctamente.");
@@ -180,6 +276,13 @@ export default function DetallesMeet() {
       {renderEditableCampo("ubicacion", "Ubicación")}
 
       <div className="text-gray-800 mb-4">
+        <strong>Fecha:</strong> {meet.fecha}
+      </div>
+      <div className="text-gray-800 mb-4">
+        <strong>Hora:</strong> {meet.hora}
+      </div>
+
+      <div className="text-gray-800 mb-4">
         <strong>Creador de la meet:</strong> {meet.creador.nombre}
         <img
           src={meet.creador.imagen_perfil}
@@ -188,13 +291,13 @@ export default function DetallesMeet() {
         />
       </div>
 
-      {isLoaded && (
+      {isLoaded && mapCoords && (
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
-          center={{ lat: meet.latitud, lng: meet.longitud }}
+          center={mapCoords}
           zoom={15}
         >
-          <Marker position={{ lat: meet.latitud, lng: meet.longitud }} />
+          <Marker position={mapCoords} />
         </GoogleMap>
       )}
 
@@ -238,11 +341,15 @@ export default function DetallesMeet() {
       )}
 
       {isFull && !hasJoined && (
-        <p className="text-red-500 text-center mt-4">Esta meet está completa.</p>
+        <p className="text-red-500 text-center mt-4">
+          Esta meet está completa.
+        </p>
       )}
 
       {hasJoined && (
-        <p className="text-green-500 text-center mt-4">¡Ya estás apuntado!</p>
+        <p className="text-green-500 text-center mt-4">
+          ¡Ya estás apuntado!
+        </p>
       )}
     </div>
   );

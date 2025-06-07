@@ -213,7 +213,7 @@ export default function PvpEnfrentamientos() {
           <>
             <div className="mb-4">
               <label className="block mb-2 font-semibold">Editar Imagen:</label>
-              <input type="file" accept="image/*" onChange={handleImagenChange} />
+              <input type="file" accept=".webp,.png" onChange={handleImagenChange} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

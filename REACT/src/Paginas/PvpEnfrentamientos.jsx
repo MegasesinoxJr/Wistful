@@ -12,12 +12,12 @@ export default function PvpEnfrentamientos() {
   const [ws, setWs] = useState(null);
   const [skillMessage, setSkillMessage] = useState("");
   const [mensajeFinal, setMensajeFinal] = useState("");
+  const [infoMessage, setInfoMessage] = useState(""); // Mensaje de desconexión por timeout
   const [animateAttacker, setAnimateAttacker] = useState(null);
   const [animateVictim, setAnimateVictim] = useState(null);
 
-  // Nuevo estado para modo edición
-  const [editMode, setEditMode] = useState(false);
   // Estados para edición
+  const [editMode, setEditMode] = useState(false);
   const [imagenNueva, setImagenNueva] = useState(null);
   const [habilidadesEdit, setHabilidadesEdit] = useState({
     habilidad_1: "",
@@ -25,6 +25,22 @@ export default function PvpEnfrentamientos() {
     habilidad_3: "",
     habilidad_4: ""
   });
+
+  // Efecto para manejar timeout de espera en cola
+  useEffect(() => {
+    let timer;
+    if (estado === "waiting") {
+      timer = setTimeout(() => {
+        setInfoMessage("Se te desconectó de la cola porque no hay jugadores haciendo matchmaking");
+        if (ws) {
+          ws.close();
+          setWs(null);
+        }
+        setEstado("idle");
+      }, 30000); // 30 segundos
+    }
+    return () => clearTimeout(timer);
+  }, [estado, ws]);
 
   const fetchCombatiente = () => {
     axiosInstance.get('/combatiente/')
@@ -42,12 +58,13 @@ export default function PvpEnfrentamientos() {
   };
 
   useEffect(() => {
-    fetchCombatiente()
+    fetchCombatiente();
   }, []);
 
   const iniciarPVP = () => {
+    setInfoMessage("");
     setEstado("waiting");
-    const socket = new WebSocket(`wss://${ WS_SERVER_BASE_URL }/ws/pvp/`);
+    const socket = new WebSocket(`wss://${WS_SERVER_BASE_URL}/ws/pvp/`);
 
     socket.onopen = () => {
       socket.send(JSON.stringify({ action: "matchmake", userCombatiente: combatiente }));
@@ -85,11 +102,15 @@ export default function PvpEnfrentamientos() {
       }
     };
 
+    socket.onclose = () => {
+      setWs(null);
+    };
+
     setWs(socket);
   };
 
   const usarHabilidad = (habilidad) => {
-    if (turno === "combatiente") {
+    if (turno === "combatiente" && ws) {
       ws.send(JSON.stringify({ action: "use_skill", skill: habilidad }));
       setTurno("oponente");
     }
@@ -97,10 +118,7 @@ export default function PvpEnfrentamientos() {
 
   const toggleEditMode = () => {
     setEditMode(!editMode);
-    // Reset edits if canceling
-    if (editMode) {
-      fetchCombatiente();
-    }
+    if (editMode) fetchCombatiente();
   };
 
   const handleHabilidadChange = (e) => {
@@ -115,26 +133,20 @@ export default function PvpEnfrentamientos() {
   };
 
   const guardarCambios = async () => {
-    // Crear formData para enviar imagen si hay nueva
     const formData = new FormData();
     formData.append("habilidad_1", habilidadesEdit.habilidad_1);
     formData.append("habilidad_2", habilidadesEdit.habilidad_2);
     formData.append("habilidad_3", habilidadesEdit.habilidad_3);
     formData.append("habilidad_4", habilidadesEdit.habilidad_4);
-    if (imagenNueva) {
-      formData.append("imagen", imagenNueva);
-    }
+    if (imagenNueva) formData.append("imagen", imagenNueva);
 
     try {
-      // Suponiendo endpoint PATCH para actualizar combatiente
       await axiosInstance.patch("/combatiente/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       fetchCombatiente();
       setEditMode(false);
-    } catch (error) {
-
-    }
+    } catch (error) {}
   };
 
   if (combatiente === null) {
@@ -310,6 +322,11 @@ export default function PvpEnfrentamientos() {
             : "bg-gray-400 text-gray-700 cursor-not-allowed"
             }`}
         >
+                {infoMessage && (
+        <div className="w-full max-w-md mx-auto bg-yellow-200 text-yellow-800 border border-yellow-400 rounded-lg p-4 mb-4 text-center">
+          {infoMessage}
+        </div>
+      )}
           {estado === "idle"
             ? "Entrar a PVP"
             : estado === "waiting"

@@ -146,7 +146,7 @@ export default function PvpEnfrentamientos() {
       });
       fetchCombatiente();
       setEditMode(false);
-    } catch (error) {}
+    } catch (error) { }
   };
 
   if (combatiente === null) {
@@ -313,7 +313,11 @@ export default function PvpEnfrentamientos() {
             )}
           </>
         )}
-
+        {infoMessage && (
+          <div className="w-full max-w-md mx-auto bg-yellow-200 text-yellow-800 border border-yellow-400 rounded-lg p-4 mb-4 text-center">
+            {infoMessage}
+          </div>
+        )}
         <button
           onClick={iniciarPVP}
           disabled={estado !== "idle" || editMode}
@@ -322,11 +326,7 @@ export default function PvpEnfrentamientos() {
             : "bg-gray-400 text-gray-700 cursor-not-allowed"
             }`}
         >
-                {infoMessage && (
-        <div className="w-full max-w-md mx-auto bg-yellow-200 text-yellow-800 border border-yellow-400 rounded-lg p-4 mb-4 text-center">
-          {infoMessage}
-        </div>
-      )}
+
           {estado === "idle"
             ? "Entrar a PVP"
             : estado === "waiting"

@@ -12,7 +12,7 @@ export default function CrearFormulario() {
   const [preguntas, setPreguntas] = useState([
     {
       texto: "",
-      respuestas: [{ texto: "", es_correcta: false }],
+      respuestas: [{ texto: "", es_correcta: true }],
     },
   ]);
   const [imagenPreview, setImagenPreview] = useState(null);

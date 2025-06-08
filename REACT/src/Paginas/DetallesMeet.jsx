@@ -120,7 +120,7 @@ export default function DetallesMeet() {
     const minAllowed = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     if (selectedDateTime < minAllowed) {
-      alert("La fecha y hora deben ser al menos 24 horas en el futuro.");
+
       return;
     }
 
@@ -140,7 +140,7 @@ export default function DetallesMeet() {
       setMeet(res.data);
       setEditando(false);
     } catch {
-      alert("Error al guardar los cambios.");
+
     }
   };
 

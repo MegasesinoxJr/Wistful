@@ -78,7 +78,7 @@ export default function CrearFormulario() {
       reader.onloadend = () => setImagenPreview(reader.result);
       reader.readAsDataURL(file);
     } else {
-      alert("La imagen debe ser un PNG");
+
     }
   };
 
@@ -98,11 +98,11 @@ export default function CrearFormulario() {
           "Content-Type": "multipart/form-data",
         },
       });
-      alert("Formulario creado");
+
       navigate("/formularios");
     } catch (err) {
       console.error(err);
-      alert("Error al crear el formulario");
+
     }
   };
 

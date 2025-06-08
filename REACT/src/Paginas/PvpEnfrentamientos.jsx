@@ -133,7 +133,7 @@ export default function PvpEnfrentamientos() {
       fetchCombatiente();
       setEditMode(false);
     } catch (error) {
-      alert("Error al guardar cambios");
+
     }
   };
 

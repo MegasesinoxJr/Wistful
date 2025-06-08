@@ -66,7 +66,7 @@ export default function CrearMeet() {
       setHora('');
     } catch (e) {
       console.error(e);
-      alert('Error al crear meet');
+
     }
   };
 

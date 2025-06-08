@@ -61,7 +61,7 @@ export default function EditarFormulario() {
       reader.onloadend = () => setImagenPreview(reader.result);
       reader.readAsDataURL(file);
     } else {
-      alert("La imagen debe ser un PNG");
+
     }
   };
 
@@ -117,11 +117,11 @@ const removeRespuesta = (pIndex, rIndex) => {
       await axiosInstanceInsignias.patch(`formularios/${formularioId}/editar`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      alert("Formulario actualizado.");
+
       navigate("/insignias");
     } catch (e) {
       console.error(e);
-      alert("Error al actualizar formulario.");
+
     }
   };
 

@@ -42,10 +42,10 @@ export default function DetallesPerfil() {
         { role: newRole }
       );
       setProfile(res.data);
-      alert("Rol actualizado correctamente.");
+
     } catch (err) {
       console.error(err);
-      alert("No se pudo actualizar el rol.");
+
     }
   };
 

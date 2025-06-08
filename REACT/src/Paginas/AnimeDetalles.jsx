@@ -52,11 +52,11 @@ export default function AnimeDetalles() {
   const handleDelete = async () => {
     try {
       await axiosInstance.delete(`animes/${id}/`);
-      alert("Anime eliminado correctamente.");
+      
       navigate("/topAnimes");
     } catch (err) {
       console.error("Error al eliminar el anime:", err);
-      alert("Hubo un error al eliminar el anime.");
+
     }
   };
 
@@ -82,7 +82,7 @@ export default function AnimeDetalles() {
       setEditMode(false);
     } catch (err) {
       console.error("Error al guardar cambios:", err);
-      alert("No se pudo actualizar el anime.");
+
     }
   };
 

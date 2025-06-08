@@ -6,6 +6,7 @@ from .serializers import FormularioSerializer, InsigniaObtenidaSerializer
 from users.models import Miembro
 from users.permissions import Edicion
 import json
+from rest_framework import status
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -150,3 +151,20 @@ def editar_formulario(request, formulario_id):
             )
 
     return Response({'mensaje': 'Formulario actualizado'})
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, Edicion])
+def eliminar_formulario(request, formulario_id):
+    try:
+        formulario = Formulario.objects.get(pk=formulario_id)
+    except Formulario.DoesNotExist:
+        return Response({'error': 'Formulario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    miembro = Miembro.objects.get(user=request.user)
+
+    # Solo el creador o alguien con rol elevado puede eliminar
+    if formulario.creador.user != request.user and miembro.role not in ('admin', 'root', 'colaborador'):
+        return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+    formulario.delete()
+    return Response({'mensaje': 'Formulario eliminado'}, status=status.HTTP_204_NO_CONTENT)

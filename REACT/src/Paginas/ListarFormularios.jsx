@@ -7,7 +7,23 @@ import { useNavigate } from "react-router-dom";
 const ListarFormularios = () => {
   const [formularios, setFormularios] = useState([]);
   const [error, setError] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [formularioAEliminar, setFormularioAEliminar] = useState(null);
   const navigate = useNavigate(); // usar navegación programática
+
+
+  const handleDelete = async (id) => {
+    try {
+      await axiosInstanceInsignias.delete(`formularios/${id}/`);
+      setFormularios(formularios.filter(f => f.id !== id));
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+      setError("No se pudo eliminar el formulario.");
+    } finally {
+      setShowConfirmModal(false);
+      setFormularioAEliminar(null);
+    }
+  };
 
   useEffect(() => {
     const fetchFormularios = async () => {
@@ -24,7 +40,7 @@ const ListarFormularios = () => {
   }, []);
 
   return (
-    <div className="container mx-auto p-4 pt-24"> 
+    <div className="container mx-auto p-4 pt-24">
       <h2 className="text-2xl font-semibold mb-4 text-center">Evento Insignias</h2>
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
@@ -57,8 +73,50 @@ const ListarFormularios = () => {
             >
               ✏️
             </button>
+            <button
+              className="absolute top-2 right-10 text-gray-500 hover:text-red-600 text-lg"
+              onClick={() => {
+                setFormularioAEliminar(formulario.id);
+                setShowConfirmModal(true);
+              }}
+              title="Eliminar formulario"
+            >
+              ❌
+            </button>
           </div>
         ))}
+      </div>
+      <ConfirmModal
+        open={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={() => handleDelete(formularioAEliminar)}
+      />
+    </div>
+
+  );
+};
+const ConfirmModal = ({ open, onClose, onConfirm }) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">¿Estás seguro?</h3>
+        <p className="text-sm text-gray-600 mb-6">Esta acción eliminará el formulario de forma permanente.</p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+          >
+            Eliminar
+          </button>
+        </div>
       </div>
     </div>
   );

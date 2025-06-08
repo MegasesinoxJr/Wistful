@@ -96,13 +96,13 @@ export default function EditarFormulario() {
     copy[pIndex].respuestas.push({ texto: "", es_correcta: false });
     setPreguntas(copy);
   };
-  const removeRespuesta = (pIndex, rIndex) => {
-    const copy = [...preguntas];
-    copy[pIndex].respuestas = copy[pIndex].respuestas.filter((_, i) => i !== rIndex);
-    setPreguntas(copy);
-  };
+const removeRespuesta = (pIndex, rIndex) => {
+  const copy = [...preguntas];
 
-  // Envío del formulario editado
+  copy[pIndex].respuestas = copy[pIndex].respuestas.filter((_, i) => i !== rIndex);
+  setPreguntas(copy);
+};
+
   const handleSubmit = async e => {
     e.preventDefault();
     try {
@@ -220,9 +220,11 @@ export default function EditarFormulario() {
                 checked={resp.es_correcta}
                 onChange={() => toggleCorrecta(pIndex, rIndex)}
               />
-              <button type="button" onClick={() => removeRespuesta(pIndex, rIndex)} className="text-red-600">
-                🗑️
-              </button>
+              {preg.respuestas.length > 1 && (
+                <button type="button" onClick={() => removeRespuesta(pIndex, rIndex)} className="text-red-600">
+                  🗑️
+                </button>
+              )}
             </div>
           ))}
           <div className="flex space-x-2">

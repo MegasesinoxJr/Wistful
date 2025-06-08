@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // Estado para el error
   const { setUser } = useUser();
   const navigate = useNavigate();
 
@@ -19,9 +20,11 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       setUser(res.data.user);
 
-      navigate("/"); // redireccion al home despues del login
+      setErrorMessage(""); // Limpiar error si todo sale bien
+      navigate("/");
     } catch (err) {
       console.error("Login failed", err);
+      setErrorMessage("Error al iniciar sesión. Verifica tu correo y contraseña.");
     }
   };
 
@@ -55,6 +58,12 @@ export default function LoginPage() {
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
+
+        {errorMessage && (
+          <div className="mb-4 text-red-600 text-sm text-center">
+            {errorMessage}
+          </div>
+        )}
 
         <button
           type="submit"

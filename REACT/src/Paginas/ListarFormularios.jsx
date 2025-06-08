@@ -1,124 +1,211 @@
-import axiosInstanceInsignias from "../axiosInstanceFormularios";
-import { SERVER_BASE_URL } from "../axiosInstancePublic";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import axiosInstancePublic, { SERVER_BASE_URL } from "../axiosInstancePublic";
+import axiosInstance from "../axiosInstance";
+import ValorarAnime from "./ValorarAnime";
+import { useUser } from "../Paginas/UserContext";
 
+export default function AnimeDetalles() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [anime, setAnime] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [sinopsis, setSinopsis] = useState("");
+  const [generosDisponibles, setGenerosDisponibles] = useState([]);
+  const [generosSeleccionados, setGenerosSeleccionados] = useState([]);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-const ListarFormularios = () => {
-  const [formularios, setFormularios] = useState([]);
-  const [error, setError] = useState("");
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [formularioAEliminar, setFormularioAEliminar] = useState(null);
-  const navigate = useNavigate(); // usar navegación programática
-
-
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstanceInsignias.delete(`formularios/${id}/delete`);
-      setFormularios(formularios.filter(f => f.id !== id));
-    } catch (err) {
-      console.error("Error al eliminar:", err);
-      setError("No se pudo eliminar el formulario.");
-    } finally {
-      setShowConfirmModal(false);
-      setFormularioAEliminar(null);
-    }
-  };
+  const { user } = useUser();
+  const isLogged = Boolean(localStorage.getItem("access_token"));
+  const isCol = user?.role === "colaborador";
+  const isAdmin = user?.role === "admin";
+  const isRoot = user?.role === "root";
+  const canEdit = isCol || isAdmin || isRoot;
 
   useEffect(() => {
-    const fetchFormularios = async () => {
+    const fetchAnime = async () => {
       try {
-        const res = await axiosInstanceInsignias.get("formularios/");
-        setFormularios(res.data);
+        const res = await axiosInstancePublic.get(`animes/${id}/`);
+        setAnime(res.data);
+        setTitulo(res.data.titulo);
+        setSinopsis(res.data.sinopsis);
+        setGenerosSeleccionados(res.data.generos_ids || []);
       } catch (err) {
-        console.error("Error fetching formularios:", err);
-        setError("No se pudieron cargar los formularios.");
+        console.error("Error al cargar detalle de anime:", err);
       }
     };
 
-    fetchFormularios();
-  }, []);
+    const fetchGeneros = async () => {
+      try {
+        const res = await axiosInstancePublic.get("generos/");
+        setGenerosDisponibles(res.data);
+      } catch (err) {
+        console.error("Error al obtener géneros:", err);
+      }
+    };
+
+    fetchAnime();
+    fetchGeneros();
+  }, [id]);
+
+  const handleDelete = async () => {
+    try {
+      await axiosInstance.delete(`animes/${id}/`);
+      
+      navigate("/topAnimes");
+    } catch (err) {
+      console.error("Error al eliminar el anime:", err);
+
+    }
+  };
+
+  const handleEditToggle = () => setEditMode(!editMode);
+
+  const handleGeneroChange = (id) => {
+    setGenerosSeleccionados((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    );
+  };
+
+  const handleSave = async () => {
+    try {
+      const payload = {
+        titulo,
+        sinopsis,
+        generos: generosSeleccionados
+      };
+      
+      axiosInstance.defaults.headers.patch['Content-Type'] = 'application/json';
+      const res = await axiosInstance.patch(`animes/${id}/`, payload);
+      setAnime(res.data);
+      setEditMode(false);
+    } catch (err) {
+      console.error("Error al guardar cambios:", err);
+
+    }
+  };
+
+  if (!anime) return <p className="text-center text-lg">Cargando...</p>;
 
   return (
-    <div className="container mx-auto p-4 pt-24">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Evento Insignias</h2>
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+    <div className="max-w-4xl mx-auto p-4 mt-14 relative">
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {formularios.map((formulario) => (
-          <div
-            key={formulario.id}
-            className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 relative"
-          >
-            <a
-              href={`/insignias/formularios/${formulario.id}`}
-              className="block text-blue-600 hover:text-blue-800 font-semibold text-lg mb-2 text-center mt-4"
-            >
-              {formulario.titulo}
-            </a>
+      {canEdit && (
+        <button
+          onClick={() => setShowConfirmDelete(true)}
+          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center"
+          title="Eliminar anime"
+        >
+          ✕
+        </button>
+      )}
 
-            <div className="w-32 h-32 object-cover rounded-lg mx-auto border-2 border-gray-300">
-              <img
-                src={`${SERVER_BASE_URL}${formulario.imagen}`}
-                alt={formulario.titulo}
-                className="w-full h-full object-cover"
-              />
-            </div>
+      {canEdit && (
+        <button
+          onClick={handleEditToggle}
+          className="absolute top-4 right-14 text-2xl"
+          title="Editar anime"
+        >
+          ✏️
+        </button>
+      )}
 
-            {/* Ícono de lápiz para editar */}
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-blue-600 text-lg"
-              onClick={() => navigate(`/insignias/editar/${formulario.id}`)}
-              title="Editar formulario"
-            >
-              ✏️
-            </button>
-            <button
-              className="absolute top-2 right-10 text-gray-500 hover:text-red-600 text-lg"
-              onClick={() => {
-                setFormularioAEliminar(formulario.id);
-                setShowConfirmModal(true);
-              }}
-              title="Eliminar formulario"
-            >
-              ❌
-            </button>
-          </div>
-        ))}
-      </div>
-      <ConfirmModal
-        open={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={() => handleDelete(formularioAEliminar)}
+      {editMode ? (
+        <input
+          type="text"
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          className="text-3xl font-semibold text-center mt-12 mb-4 w-full border-b border-gray-400"
+        />
+      ) : (
+        <h2 className="text-3xl font-semibold text-center mt-12 mb-4">{anime.titulo}</h2>
+      )}
+
+      <img
+        src={`${SERVER_BASE_URL}${anime.imagen}`}
+        alt={anime.titulo}
+        className="w-72 h-auto object-cover mx-auto mb-6 rounded-lg shadow-lg"
       />
-    </div>
 
-  );
-};
-const ConfirmModal = ({ open, onClose, onConfirm }) => {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">¿Estás seguro?</h3>
-        <p className="text-sm text-gray-600 mb-6">Esta acción eliminará el formulario de forma permanente.</p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
-          >
-            Eliminar
-          </button>
-        </div>
+      <div className="text-lg font-medium mb-2">
+        <strong>Sinopsis:</strong>{' '}
+        {editMode ? (
+          <textarea
+            value={sinopsis}
+            onChange={(e) => setSinopsis(e.target.value)}
+            className="w-full border p-2 rounded mt-1"
+          />
+        ) : (
+          <span>{anime.sinopsis}</span>
+        )}
       </div>
+
+      {editMode ? (
+        <div className="mb-4">
+          <strong className="block mb-2">Géneros:</strong>
+          <div className="flex flex-wrap gap-4">
+            {generosDisponibles.map((genero) => (
+              <label key={genero.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={generosSeleccionados.includes(genero.id)}
+                  onChange={() => handleGeneroChange(genero.id)}
+                />
+                {genero.nombre}
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : (
+        anime.generos?.length > 0 && (
+          <p className="text-lg font-medium mb-2">
+            <strong>Géneros:</strong> {anime.generos.join(", ")}
+          </p>
+        )
+      )}
+
+      <p className="text-lg font-medium mb-4">
+        <strong>Puntuación promedio:</strong> {anime.puntuacion_promedio ?? "—"}
+      </p>
+
+      {editMode && (
+        <button
+          onClick={handleSave}
+          className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+        >
+          Guardar cambios
+        </button>
+      )}
+
+      {isLogged && !editMode && (
+        <div className="mt-6">
+          <ValorarAnime animeId={anime.id} />
+        </div>
+      )}
+
+      {showConfirmDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full text-center">
+            <p className="mb-4 text-lg font-semibold">¿Estás seguro de que quieres eliminar este anime?</p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={async () => { await handleDelete(); setShowConfirmDelete(false); }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+              >
+                Sí, eliminar
+              </button>
+              <button
+                onClick={() => setShowConfirmDelete(false)}
+                className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
-};
-export default ListarFormularios;
+}

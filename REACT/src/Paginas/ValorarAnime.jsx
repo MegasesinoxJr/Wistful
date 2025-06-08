@@ -10,6 +10,7 @@ export default function ValorarAnime({ animeId }) {
         "🤢 Horrible", "😞 Muy malo", "😒 Malo", "😐 Mediocre", "🙂 Suficiente",
         "😊 Bien", "😌 Notable", "😃 Muy Bueno", "😍 Maravilloso", "🤩 Obra maestra"
     ];
+    const [mostrarOpciones, setMostrarOpciones] = useState(false);
 
     useEffect(() => {
         const fetchValoracion = async () => {
@@ -54,33 +55,32 @@ export default function ValorarAnime({ animeId }) {
         <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto p-4 bg-white rounded-lg shadow-md">
             <label className="block text-sm font-medium mb-2">Puntuar este anime:</label>
 
-            <div className="relative">
-                <select
-                    id="select-puntuacion"
-                    value={puntuacion}
-                    onChange={(e) => setPuntuacion(Number(e.target.value))}
-                    required
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                    {Array.from({ length: 10 }, (_, index) => (
-                        <option key={index} value={index + 1}>
-                            {index + 1}
-                        </option>
-                    ))}
-                </select>
+            <div className="relative w-full">
+    <button
+        type="button"
+        onClick={() => setMostrarOpciones((prev) => !prev)}
+        className="w-full p-2 text-sm border border-gray-300 rounded-md bg-white text-left focus:outline-none focus:ring-1 focus:ring-blue-500"
+    >
+        {puntuacion}. {puntuaciones[puntuacion - 1]}
+    </button>
 
-                <div
-                    className="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600 cursor-pointer"
+    {mostrarOpciones && (
+        <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+            {puntuaciones.map((texto, index) => (
+                <li
+                    key={index}
                     onClick={() => {
-                        const select = document.getElementById("select-puntuacion");
-                        if (select) select.click(); 
+                        setPuntuacion(index + 1);
+                        setMostrarOpciones(false);
                     }}
+                    className="px-4 py-2 cursor-pointer hover:bg-blue-100"
                 >
-                    <span className="flex items-center justify-center">
-                        {puntuaciones[puntuacion - 1]}
-                    </span>
-                </div>
-            </div>
+                    {index + 1}. {texto}
+                </li>
+            ))}
+        </ul>
+    )}
+</div>
 
             <div className="text-center mt-2 text-xl font-semibold text-blue-600">
                 <span className="bg-yellow-300 px-2 py-1 rounded-md text-lg font-bold">

@@ -56,11 +56,12 @@ export default function ValorarAnime({ animeId }) {
 
             <div className="relative">
                 <select
+                    id="select-puntuacion"
+
                     value={puntuacion}
                     onChange={(e) => setPuntuacion(Number(e.target.value))}
                     required
                     className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    id="opciones"
                 >
                     {Array.from({ length: 10 }, (_, index) => (
                         <option key={index} value={index + 1}>
@@ -69,11 +70,14 @@ export default function ValorarAnime({ animeId }) {
                     ))}
                 </select>
 
-                <label htmlFor="opciones" className="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600">
+                <div
+                    className="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600 cursor-pointer"
+                    onClick={() => document.getElementById("select-puntuacion")?.focus()}
+                >
                     <p className="flex items-center justify-center">
                         {puntuaciones[puntuacion - 1]}
                     </p>
-                </label>
+                </div>
             </div>
 
             <div className="text-center mt-2 text-xl font-semibold text-blue-600">

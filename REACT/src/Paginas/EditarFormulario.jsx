@@ -9,6 +9,7 @@ export default function EditarFormulario() {
   const [nombre, setNombre] = useState("");
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  // Ahora el valor máximo dependerá de preguntas.length
   const [respuestasNecesarias, setRespuestasNecesarias] = useState(1);
   const [imagen, setImagen] = useState(null);
   const [imagenPreview, setImagenPreview] = useState(null);
@@ -42,6 +43,14 @@ export default function EditarFormulario() {
     }
     fetchData();
   }, [formularioId]);
+
+  // Ajusta el estado de respuestasNecesarias al cambiar preguntas
+  useEffect(() => {
+    const max = preguntas.length;
+    if (respuestasNecesarias > max) {
+      setRespuestasNecesarias(max);
+    }
+  }, [preguntas]);
 
   // Manejo de cambios
   const handleFileChange = e => {
@@ -77,8 +86,11 @@ export default function EditarFormulario() {
     setPreguntas(copy);
   };
 
-  const addPregunta = () => setPreguntas([...preguntas, { texto: "", respuestas: [{ texto: "", es_correcta: true }] }]);
-  const removePregunta = pIndex => setPreguntas(preguntas.filter((_, i) => i !== pIndex));
+  const addPregunta = () => setPreguntas([...preguntas, { texto: "", respuestas: [{ texto: "", es_correcta: false }] }]);
+  const removePregunta = pIndex => {
+    const copy = preguntas.filter((_, i) => i !== pIndex);
+    setPreguntas(copy);
+  };
   const addRespuesta = pIndex => {
     const copy = [...preguntas];
     copy[pIndex].respuestas.push({ texto: "", es_correcta: false });
@@ -161,16 +173,18 @@ export default function EditarFormulario() {
         <input
           type="number"
           min={1}
+          max={preguntas.length}
           value={respuestasNecesarias}
-          onChange={e => setRespuestasNecesarias(+e.target.value)}
+          onChange={e => setRespuestasNecesarias(Math.min(+e.target.value, preguntas.length))}
           required
           className="w-full p-3 mt-2 border rounded-lg focus:ring-2 focus:ring-blue-600"
         />
+        <p className="text-xs text-gray-500 mt-1">Máx: {preguntas.length} respuestas</p>
       </div>
 
       {/* Imagen */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Imagen (PNG)</label>
+      <div className="flex flex-col items-center">
+        <label className="w-full block text-sm font-medium text-gray-700">Imagen (PNG)</label>
         <input
           type="file"
           accept="image/png"

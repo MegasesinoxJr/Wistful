@@ -86,7 +86,7 @@ export default function EditarFormulario() {
     setPreguntas(copy);
   };
 
-  const addPregunta = () => setPreguntas([...preguntas, { texto: "", respuestas: [{ texto: "", es_correcta: false }] }]);
+  const addPregunta = () => setPreguntas([...preguntas, { texto: "", respuestas: [{ texto: "", es_correcta: true }] }]);
   const removePregunta = pIndex => {
     const copy = preguntas.filter((_, i) => i !== pIndex);
     setPreguntas(copy);

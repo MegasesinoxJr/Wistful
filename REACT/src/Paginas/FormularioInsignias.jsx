@@ -6,6 +6,7 @@ export default function CrearFormulario() {
   const [nombre, setNombre] = useState("");
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  // Ajuste respuestasNecesarias según preguntas
   const [respuestasNecesarias, setRespuestasNecesarias] = useState(1);
   const [imagen, setImagen] = useState(null);
   const [preguntas, setPreguntas] = useState([
@@ -15,6 +16,13 @@ export default function CrearFormulario() {
     },
   ]);
   const [imagenPreview, setImagenPreview] = useState(null); // Vista previa de la imagen
+
+  // Mantener respuestasNecesarias <= preguntas.length
+  React.useEffect(() => {
+    if (respuestasNecesarias > preguntas.length) {
+      setRespuestasNecesarias(preguntas.length);
+    }
+  }, [preguntas]);
 
   // Manejar la carga de preguntas
   const handlePreguntaChange = (index, value) => {
@@ -42,7 +50,16 @@ export default function CrearFormulario() {
 
   // Añadir una pregunta
   const addPregunta = () => {
-    setPreguntas([...preguntas, { texto: "", respuestas: [{ texto: "", es_correcta: false }] }]);
+    setPreguntas([
+      ...preguntas,
+      { texto: "", respuestas: [{ texto: "", es_correcta: true }] },
+    ]);
+  };
+
+  // Eliminar una pregunta y ajustar respuestasNecesarias
+  const removePregunta = (pIndex) => {
+    const newPreguntas = preguntas.filter((_, index) => index !== pIndex);
+    setPreguntas(newPreguntas);
   };
 
   // Añadir una respuesta a una pregunta específica
@@ -52,16 +69,12 @@ export default function CrearFormulario() {
     setPreguntas(newPreguntas);
   };
 
-  // Eliminar una pregunta
-  const removePregunta = (pIndex) => {
-    const newPreguntas = preguntas.filter((_, index) => index !== pIndex);
-    setPreguntas(newPreguntas);
-  };
-
-  // Eliminar una respuesta
+  // Eliminar una respuesta y ajustar respuestasNecesarias
   const removeRespuesta = (pIndex, rIndex) => {
     const newPreguntas = [...preguntas];
-    newPreguntas[pIndex].respuestas = newPreguntas[pIndex].respuestas.filter((_, index) => index !== rIndex);
+    newPreguntas[pIndex].respuestas = newPreguntas[pIndex].respuestas.filter(
+      (_, index) => index !== rIndex
+    );
     setPreguntas(newPreguntas);
   };
 
@@ -81,8 +94,6 @@ export default function CrearFormulario() {
   // Manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-
     const formData = new FormData();
     formData.append("nombre", nombre);
     formData.append("titulo", titulo);
@@ -97,8 +108,8 @@ export default function CrearFormulario() {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate("/formularios");  // <-- redirige aquí2
       alert("Formulario creado");
+      navigate("/formularios");
     } catch (err) {
       console.error(err);
       alert("Error al crear el formulario");
@@ -148,11 +159,13 @@ export default function CrearFormulario() {
         <input
           type="number"
           min={1}
+          max={preguntas.length}
           value={respuestasNecesarias}
-          onChange={(e) => setRespuestasNecesarias(e.target.value)}
+          onChange={(e) => setRespuestasNecesarias(Math.min(+e.target.value, preguntas.length))}
           required
           className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
+        <p className="text-xs text-gray-500 mt-1">Máx: {preguntas.length} respuestas</p>
       </div>
 
       <div>
@@ -250,3 +263,4 @@ export default function CrearFormulario() {
     </form>
   );
 }
+

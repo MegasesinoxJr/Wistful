@@ -145,7 +145,7 @@ export default function TopAnimes() {
             <h3 className="text-xl font-semibold text-blue-500 mb-4 hover:underline">
               {anime.titulo}
             </h3>
-            <p className="text-sm text-gray-700 mb-2">
+            <p className="text-sm text-gray-700 mb-2 [display:-webkit-box] [overflow:hidden] [text-overflow:ellipsis] [-webkit-box-orient:vertical] [-webkit-line-clamp:7]">
               <strong>Sinopsis:</strong> {anime.sinopsis}
             </p>
             <p className="text-sm text-gray-600">

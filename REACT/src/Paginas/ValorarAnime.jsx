@@ -53,9 +53,9 @@ export default function ValorarAnime({ animeId }) {
     return (
         <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto p-4 bg-white rounded-lg shadow-md">
             <label className="block text-sm font-medium mb-2">Puntuar este anime:</label>
-
             <div className="relative">
                 <select
+                    id="select-puntuacion"
                     value={puntuacion}
                     onChange={(e) => setPuntuacion(Number(e.target.value))}
                     required
@@ -68,11 +68,14 @@ export default function ValorarAnime({ animeId }) {
                     ))}
                 </select>
 
-                <div className="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600">
-                    <p className="flex items-center justify-center">
+                <label
+                    htmlFor="select-puntuacion"
+                    className="absolute inset-y-0 right-0 flex items-center pr-5 text-sm text-gray-600 cursor-pointer"
+                >
+                    <span className="flex items-center justify-center">
                         {puntuaciones[puntuacion - 1]}
-                    </p>
-                </div>
+                    </span>
+                </label>
             </div>
 
             <div className="text-center mt-2 text-xl font-semibold text-blue-600">

@@ -102,30 +102,44 @@ def obtener_formulario(request, formulario_id):
     except Formulario.DoesNotExist:
         return Response({'error': 'Formulario no encontrado'}, status=404)
     
-@api_view(['PUT','PATCH'])
-@permission_classes([IsAuthenticated,Edicion])
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated, Edicion])
 def editar_formulario(request, formulario_id):
     try:
         formulario = Formulario.objects.get(pk=formulario_id)
     except Formulario.DoesNotExist:
         return Response({'error': 'Formulario no encontrado'}, status=404)
 
-    if formulario.creador.user != request.user and Miembro.role not in ('admin', 'root', 'colaborador'):
+    try:
+        miembro = Miembro.objects.get(user=request.user)
+    except Miembro.DoesNotExist:
+        return Response({'error': 'Miembro no encontrado'}, status=404)
+
+    # Permitir si es el creador o tiene rol elevado
+    if formulario.creador.user != request.user and miembro.role not in ('admin', 'root', 'colaborador'):
         return Response({'error': 'No autorizado'}, status=403)
 
     data = request.data
-    preguntas = json.loads(data.get('preguntas'))
+
+    try:
+        preguntas = json.loads(data.get('preguntas', '[]'))
+    except json.JSONDecodeError:
+        return Response({'error': 'Formato inválido de preguntas'}, status=400)
 
     formulario.titulo = data.get('titulo')
     formulario.descripcion = data.get('descripcion')
     formulario.nombre_insignia = data.get('nombre')
     formulario.respuestas_necesarias = data.get('respuestas_necesarias')
+
     if data.get('imagen'):
         formulario.imagen = data.get('imagen')
+
     formulario.save()
 
+    # Eliminar preguntas y respuestas anteriores
     formulario.preguntas.all().delete()
 
+    # Crear nuevas preguntas y respuestas
     for p in preguntas:
         pregunta = Pregunta.objects.create(formulario=formulario, texto=p['texto'])
         for r in p['respuestas']:
@@ -136,4 +150,3 @@ def editar_formulario(request, formulario_id):
             )
 
     return Response({'mensaje': 'Formulario actualizado'})
-

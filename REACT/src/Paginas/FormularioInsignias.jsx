@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import axiosInstanceInsignias from "../axiosInstanceFormularios";
+import { Navigate } from "react-router-dom";
 
 export default function CrearFormulario() {
   const [nombre, setNombre] = useState("");
@@ -109,7 +110,7 @@ export default function CrearFormulario() {
         },
       });
       alert("Formulario creado");
-      navigate("/formularios");
+      Navigate("/formularios");
     } catch (err) {
       console.error(err);
       alert("Error al crear el formulario");

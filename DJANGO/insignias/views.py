@@ -14,7 +14,7 @@ def listar_formularios(request):
     miembro = Miembro.objects.get(user=user)
 
     # Si el rol es colaborador, admin o root, devolver todos los formularios
-    if miembro.rol in ['colaborador', 'admin', 'root']:
+    if miembro.role in ['colaborador', 'admin', 'root']:
         formularios = Formulario.objects.all()
     else:
         # Si es miembro o vip, excluir los ya obtenidos

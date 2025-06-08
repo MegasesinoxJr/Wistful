@@ -199,9 +199,9 @@ def anime_list(request):
         if titulo:
             qs = qs.filter(titulo__icontains=titulo)
 
-            generos = request.query_params.getlist('generos')
-            if generos:
-                qs = qs.filter(generos__id__in=generos).distinct()
+        generos = request.query_params.getlist('generos')
+        if generos:
+            qs = qs.filter(generos__id__in=generos).distinct()
 
         paginator = AnimePagination()
         page = paginator.paginate_queryset(qs, request)

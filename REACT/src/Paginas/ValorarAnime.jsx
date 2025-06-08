@@ -69,14 +69,17 @@ export default function ValorarAnime({ animeId }) {
                     ))}
                 </select>
 
-                <label
-                    htmlFor="select-puntuacion"
+                <div
                     className="absolute h-full top-0 right-0 flex items-center pr-5 text-sm text-gray-600 cursor-pointer"
+                    onClick={() => {
+                        const select = document.getElementById("select-puntuacion");
+                        if (select) select.click(); 
+                    }}
                 >
-                    <span className="flex items-    center justify-center">
+                    <span className="flex items-center justify-center">
                         {puntuaciones[puntuacion - 1]}
                     </span>
-                </label>
+                </div>
             </div>
 
             <div className="text-center mt-2 text-xl font-semibold text-blue-600">

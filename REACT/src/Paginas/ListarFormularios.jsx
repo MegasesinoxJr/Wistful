@@ -52,7 +52,7 @@ const ListarFormularios = () => {
           >
             <a
               href={`/insignias/formularios/${formulario.id}`}
-              className="block text-blue-600 hover:text-blue-800 font-semibold text-lg mb-2 text-center"
+              className="block text-blue-600 hover:text-blue-800 font-semibold text-lg mb-2 text-center mt-4"
             >
               {formulario.titulo}
             </a>

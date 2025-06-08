@@ -118,7 +118,7 @@ const removeRespuesta = (pIndex, rIndex) => {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
-      navigate("/insignias");
+      navigate("/formularios");
     } catch (e) {
       console.error(e);
 

@@ -110,7 +110,7 @@ def editar_formulario(request, formulario_id):
     except Formulario.DoesNotExist:
         return Response({'error': 'Formulario no encontrado'}, status=404)
 
-    if formulario.creador.user != request.user:
+    if formulario.creador.user != request.user and Miembro.role not in ('admin', 'root', 'colaborador'):
         return Response({'error': 'No autorizado'}, status=403)
 
     data = request.data

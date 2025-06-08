@@ -25,7 +25,7 @@ class ModificarRoles(permissions.BasePermission):
             return False
         return miembro.role in ('admin', 'root',)
     
-class Edicion(permissions.BasePermission):
+class CanCreateMeet(permissions.BasePermission):
     """
     Sólo permiten crear Meet los usuarios autenticados cuyo miembro.role
     esté en ('vip','colaborador','admin','root').
@@ -38,3 +38,17 @@ class Edicion(permissions.BasePermission):
         except Miembro.DoesNotExist:
             return False
         return role in ('vip', 'colaborador', 'admin', 'root')
+    
+class Edicion(permissions.BasePermission):
+    """
+    Sólo permiten crear Meet los usuarios autenticados cuyo miembro.role
+    esté en ('colaborador','admin','root').
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        try:
+            role = request.user.miembro.role
+        except Miembro.DoesNotExist:
+            return False
+        return role in ('colaborador', 'admin', 'root')

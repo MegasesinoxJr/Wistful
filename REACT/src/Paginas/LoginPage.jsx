@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // Estado para el error
+  const [errorMessage, setErrorMessage] = useState(""); 
   const { setUser } = useUser();
   const navigate = useNavigate();
 
@@ -20,7 +20,7 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       setUser(res.data.user);
 
-      setErrorMessage(""); // Limpiar error si todo sale bien
+      setErrorMessage(""); 
       navigate("/");
     } catch (err) {
       console.error("Login failed", err);

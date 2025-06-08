@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import axiosInstanceInsignias from "../axiosInstanceFormularios";
 
@@ -18,7 +18,7 @@ export default function CrearFormulario() {
   const [imagenPreview, setImagenPreview] = useState(null); // Vista previa de la imagen
 
   // Mantener respuestasNecesarias <= preguntas.length
-  React.useEffect(() => {
+  useEffect(() => {
     if (respuestasNecesarias > preguntas.length) {
       setRespuestasNecesarias(preguntas.length);
     }

@@ -14,7 +14,7 @@ const ListarFormularios = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axiosInstanceInsignias.delete(`formularios/${id}/`);
+      await axiosInstanceInsignias.delete(`formularios/${id}/delete`);
       setFormularios(formularios.filter(f => f.id !== id));
     } catch (err) {
       console.error("Error al eliminar:", err);

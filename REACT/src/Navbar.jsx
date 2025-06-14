@@ -57,11 +57,26 @@ export const Navbar = () => {
 
           {/* menu de desktop */}
           <ul className="hidden lg:flex flex-1 justify-center items-center space-x-8">
-            {user && (<>
-              <li><NavLink to="/pvp" className="hover:bg-gray-800 px-3 py-2 rounded transition">PvP</NavLink></li>
-              <li><NavLink to="/PvP-top10" className="hover:bg-gray-800 px-3 py-2 rounded transition">Top 10</NavLink></li>
-            </>
+            {user && (
+              <li className="relative group">
+                <button className="hover:bg-gray-800 px-3 py-2 rounded transition">
+                  PvP
+                </button>
+                <ul className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-gray-800 rounded shadow-lg hidden group-hover:block whitespace-nowrap min-w-[120px] z-50">
+                  <li>
+                    <NavLink to="/pvp" className="block px-4 py-2 hover:bg-gray-700 transition">
+                      PvP
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/PvP-top10" className="block px-4 py-2 hover:bg-gray-700 transition">
+                      Top 10
+                    </NavLink>
+                  </li>
+                </ul>
+              </li>
             )}
+
 
             {user && (
               <li className="relative group">
@@ -129,7 +144,39 @@ export const Navbar = () => {
         </div>
         <div className="bg-gray-900 text-white w-full h-full pt-16 p-4 overflow-y-auto" onClick={e => e.stopPropagation()}>
           <ul className="space-y-4">
-            {user && <li><NavLink to="/pvp" onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800 rounded transition">PvP</NavLink></li>}
+            {user && (
+              <li>
+                <button
+                  onClick={() => toggleSub('pvp')}
+                  className="w-full text-left px-2 py-1 hover:bg-gray-800 rounded transition flex justify-between items-center"
+                >
+                  PvP <span>{openSubmenu === 'pvp' ? '▲' : '▼'}</span>
+                </button>
+                {openSubmenu === 'pvp' && (
+                  <ul className="pl-4 mt-2 space-y-2">
+                    <li>
+                      <NavLink
+                        to="/pvp"
+                        onClick={closeMenu}
+                        className="block px-2 py-1 hover:bg-gray-800 rounded transition"
+                      >
+                        PvP
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/PvP-top10"
+                        onClick={closeMenu}
+                        className="block px-2 py-1 hover:bg-gray-800 rounded transition"
+                      >
+                        Top 10
+                      </NavLink>
+                    </li>
+                  </ul>
+                )}
+              </li>
+            )}
+
 
             {user && (
               <li>

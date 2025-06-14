@@ -24,19 +24,19 @@ export default function Top10Trofeos() {
   return (
     <>
       <style>{`
-        /* Animación título */
+        /* Título animado */
         @keyframes titleBounce {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-8px); }
         }
 
-        /* Animación slide in up */
+        /* Animación slide in up con fade */
         @keyframes slideInUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Animación shake terremoto */
+        /* Animación terremoto */
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           10%, 90% { transform: translateX(-2px); }
@@ -45,13 +45,13 @@ export default function Top10Trofeos() {
           40%, 60% { transform: translateX(4px); }
         }
 
-        /* Animación borde animado para top3 */
+        /* Animación borde animado */
         @keyframes borderMove {
-          0% { border-color: rgba(255, 215, 0, 0.8); }
+          0%, 100% { border-color: rgba(255, 215, 0, 0.8); }
           50% { border-color: rgba(218, 165, 32, 1); }
-          100% { border-color: rgba(255, 215, 0, 0.8); }
         }
 
+        /* Clases título */
         .title {
           animation: titleBounce 2s ease-in-out infinite;
           text-align: center;
@@ -60,6 +60,7 @@ export default function Top10Trofeos() {
           margin-bottom: 1rem;
         }
 
+        /* Item animado general */
         .slide-in-up {
           animation-name: slideInUp;
           animation-duration: 0.6s;
@@ -68,30 +69,35 @@ export default function Top10Trofeos() {
           opacity: 0;
         }
 
-        .slide-shake {
-          animation: slideInUp 0.6s ease-out forwards,
-                     shake 0.6s ease-in-out 0.6s infinite;
+        /* Item top 3: slide + shake */
+        .top3-anim {
+          animation-name: slideInUp, shake;
+          animation-duration: 0.6s, 0.8s;
+          animation-timing-function: ease-out, ease-in-out;
+          animation-fill-mode: forwards, both;
+          animation-iteration-count: 1, infinite;
           opacity: 0;
         }
 
+        /* Bordes animados para top 3 */
         .animated-border {
-          border: 3px solid;
+          border-width: 3px;
+          border-style: solid;
           border-radius: 12px;
-          animation: borderMove 2.5s ease-in-out infinite;
+          animation-name: borderMove;
+          animation-duration: 2.5s;
+          animation-iteration-count: infinite;
+          animation-timing-function: ease-in-out;
         }
 
-        /* Diferentes colores de borde para top1, top2, top3 */
         .border-top1 {
           border-color: rgba(255, 215, 0, 0.9);
-          animation-name: borderMove;
         }
         .border-top2 {
           border-color: rgba(192,192,192,0.9);
-          animation-name: borderMove;
         }
         .border-top3 {
           border-color: rgba(205,127,50,0.9);
-          animation-name: borderMove;
         }
       `}</style>
 
@@ -99,6 +105,7 @@ export default function Top10Trofeos() {
         <h2 className="title">🏆 Top 10 Combatientes por Trofeos</h2>
         <div className="space-y-3">
           {list.map((c, i) => {
+            const isTop = isTop3(i);
             let borderClass = '';
             if (i === 0) borderClass = 'border-top1 animated-border';
             else if (i === 1) borderClass = 'border-top2 animated-border';
@@ -108,15 +115,12 @@ export default function Top10Trofeos() {
               <div
                 key={c.id}
                 className={`
-                  relative flex items-center justify-between p-4 rounded-xl shadow-lg
+                  flex items-center justify-between p-4 rounded-xl shadow-lg
                   ${getBgClass(i)}
-                  ${isTop3(i) ? 'slide-shake' : 'slide-in-up'}
-                  ${isTop3(i) ? borderClass : ''}
+                  ${isTop ? 'top3-anim' : 'slide-in-up'}
+                  ${isTop ? borderClass : ''}
                 `}
-                style={{
-                  animationDelay: `${i * 0.15}s`,
-                  animationFillMode: 'forwards',
-                }}
+                style={{ animationDelay: `${i * 0.15}s` }}
               >
                 <img
                   src={c.imagen}

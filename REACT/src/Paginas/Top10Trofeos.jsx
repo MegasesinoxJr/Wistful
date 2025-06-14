@@ -19,7 +19,6 @@ export default function Top10Trofeos() {
     }
   };
 
-  // Para saber si está en top 3
   const isTop3 = (index) => index >= 0 && index <= 2;
 
   return (
@@ -69,15 +68,14 @@ export default function Top10Trofeos() {
           opacity: 0;
         }
 
-        .animated-top3 {
-          animation:
-            slideInUp 0.6s ease-out forwards,
-            shake 0.6s ease-in-out 0.6s infinite;
+        .slide-shake {
+          animation: slideInUp 0.6s ease-out forwards,
+                     shake 0.6s ease-in-out 0.6s infinite;
           opacity: 0;
         }
 
         .animated-border {
-          border: 3px solid rgba(255, 215, 0, 0.8); /* Oro por defecto */
+          border: 3px solid;
           border-radius: 12px;
           animation: borderMove 2.5s ease-in-out infinite;
         }
@@ -101,7 +99,6 @@ export default function Top10Trofeos() {
         <h2 className="title">🏆 Top 10 Combatientes por Trofeos</h2>
         <div className="space-y-3">
           {list.map((c, i) => {
-            // Determinar clase de borde animado para top3
             let borderClass = '';
             if (i === 0) borderClass = 'border-top1 animated-border';
             else if (i === 1) borderClass = 'border-top2 animated-border';
@@ -113,12 +110,12 @@ export default function Top10Trofeos() {
                 className={`
                   relative flex items-center justify-between p-4 rounded-xl shadow-lg
                   ${getBgClass(i)}
-                  ${isTop3(i) ? 'animated-top3' : 'slide-in-up'}
+                  ${isTop3(i) ? 'slide-shake' : 'slide-in-up'}
                   ${isTop3(i) ? borderClass : ''}
                 `}
                 style={{
                   animationDelay: `${i * 0.15}s`,
-                  animationFillMode: 'both',
+                  animationFillMode: 'forwards',
                 }}
               >
                 <img

@@ -51,16 +51,18 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* logo */}
-          <NavLink to="/" className="text-2xl font-bold"><link rel="icon" type="image/png" href="/logo.png" /></NavLink>
+          <NavLink to="/" className="text-2xl font-bold flex items-center space-x-2">
+            <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
+          </NavLink>
 
           {/* menu de desktop */}
           <ul className="hidden lg:flex flex-1 justify-center items-center space-x-8">
             {user && (<>
-             <li><NavLink to="/pvp" className="hover:bg-gray-800 px-3 py-2 rounded transition">PvP</NavLink></li>
-             <li><NavLink to="/PvP-top10" className="hover:bg-gray-800 px-3 py-2 rounded transition">Top 10</NavLink></li>
-             </>
+              <li><NavLink to="/pvp" className="hover:bg-gray-800 px-3 py-2 rounded transition">PvP</NavLink></li>
+              <li><NavLink to="/PvP-top10" className="hover:bg-gray-800 px-3 py-2 rounded transition">Top 10</NavLink></li>
+            </>
             )}
-            
+
             {user && (
               <li className="relative group">
                 <button className="hover:bg-gray-800 px-3 py-2 rounded transition">Meet</button>
@@ -83,16 +85,16 @@ export const Navbar = () => {
               </li>
             )}
 
-           
-              <li className="relative group">
-                <button className="hover:bg-gray-800 px-3 py-2 rounded transition">Anime</button>
-                <ul className="absolute top-full left-1/2 transform -translate-x-1/2 mt-0 bg-gray-800 rounded shadow-lg hidden group-hover:block whitespace-nowrap">
-                  <li><NavLink to="/topAnimes" className="block px-4 py-2 hover:bg-gray-700 transition">Lista</NavLink></li>
-                  {user && <li><NavLink to={`/top-usuario/${user.id}`} className="block px-4 py-2 hover:bg-gray-700 transition">Mi Top</NavLink></li>}
-                  {canCrearAnime && <li><NavLink to="/crearAnime" className="block px-4 py-2 hover:bg-gray-700 transition">Crear</NavLink></li>}
-                </ul>
-              </li>
-            
+
+            <li className="relative group">
+              <button className="hover:bg-gray-800 px-3 py-2 rounded transition">Anime</button>
+              <ul className="absolute top-full left-1/2 transform -translate-x-1/2 mt-0 bg-gray-800 rounded shadow-lg hidden group-hover:block whitespace-nowrap">
+                <li><NavLink to="/topAnimes" className="block px-4 py-2 hover:bg-gray-700 transition">Lista</NavLink></li>
+                {user && <li><NavLink to={`/top-usuario/${user.id}`} className="block px-4 py-2 hover:bg-gray-700 transition">Mi Top</NavLink></li>}
+                {canCrearAnime && <li><NavLink to="/crearAnime" className="block px-4 py-2 hover:bg-gray-700 transition">Crear</NavLink></li>}
+              </ul>
+            </li>
+
             {user && <li><NavLink to="/buscarUsuarios" className="hover:bg-gray-800 px-3 py-2 rounded transition">Buscar Usuarios</NavLink></li>}
             {!user ? (
               <>
@@ -154,18 +156,18 @@ export const Navbar = () => {
               </li>
             )}
 
-            
-              <li>
-                <button onClick={() => toggleSub('anime')} className="w-full text-left px-2 py-1 hover:bg-gray-800rounded transition flex justify-between items-center">Anime <span>{openSubmenu === 'anime' ? '▲' : '▼'}</span></button>
-                {openSubmenu === 'anime' && (
-                  <ul className="pl-4 mt-2 space-y-2">
-                    <li><NavLink to="/topAnimes" onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800rounded transition">Lista</NavLink></li>
-                    {user && <li><NavLink to={`/top-usuario/${user.id}`} onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800rounded transition">Mi Top</NavLink></li>}
-                    {canCrearAnime && <li><NavLink to="/crearAnime" onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800rounded transition">Crear</NavLink></li>}
-                  </ul>
-                )}
-              </li>
-            
+
+            <li>
+              <button onClick={() => toggleSub('anime')} className="w-full text-left px-2 py-1 hover:bg-gray-800rounded transition flex justify-between items-center">Anime <span>{openSubmenu === 'anime' ? '▲' : '▼'}</span></button>
+              {openSubmenu === 'anime' && (
+                <ul className="pl-4 mt-2 space-y-2">
+                  <li><NavLink to="/topAnimes" onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800rounded transition">Lista</NavLink></li>
+                  {user && <li><NavLink to={`/top-usuario/${user.id}`} onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800rounded transition">Mi Top</NavLink></li>}
+                  {canCrearAnime && <li><NavLink to="/crearAnime" onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800rounded transition">Crear</NavLink></li>}
+                </ul>
+              )}
+            </li>
+
             {user && <li><NavLink to="/buscarUsuarios" onClick={closeMenu} className="block px-2 py-1 hover:bg-gray-800 rounded transition">Buscar Usuarios</NavLink></li>}
             {!user ? (
               <>

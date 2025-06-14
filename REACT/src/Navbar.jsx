@@ -51,7 +51,7 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* logo */}
-          <NavLink to="/" className="text-2xl font-bold">:D</NavLink>
+          <NavLink to="/" className="text-2xl font-bold"><link rel="icon" type="image/png" href="/logo.png" /></NavLink>
 
           {/* menu de desktop */}
           <ul className="hidden lg:flex flex-1 justify-center items-center space-x-8">

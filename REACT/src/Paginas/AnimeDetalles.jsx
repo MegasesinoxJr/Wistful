@@ -52,7 +52,7 @@ export default function AnimeDetalles() {
   const handleDelete = async () => {
     try {
       await axiosInstance.delete(`animes/${id}/`);
-      
+
       navigate("/topAnimes");
     } catch (err) {
       console.error("Error al eliminar el anime:", err);
@@ -127,10 +127,17 @@ export default function AnimeDetalles() {
         alt={anime.titulo}
         className="w-72 h-auto object-cover mx-auto mb-6 rounded-lg shadow-lg"
       />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setAnime({ ...anime, imagen: URL.createObjectURL(e.target.files[0]) })}
+      />
+
 
       <div className="text-lg font-medium mb-2">
         <strong>Sinopsis:</strong>{' '}
         {editMode ? (
+
           <textarea
             value={sinopsis}
             onChange={(e) => setSinopsis(e.target.value)}

@@ -129,30 +129,32 @@ export default function CrearAnime() {
             </form>
 
             {/* Previsualización del anime */}
+            {/* Previsualización del anime */}
             <div className="w-full max-w-2xl mx-auto mt-8">
                 <h2 className="text-2xl font-bold text-center mb-4">Simulación de anime</h2>
 
-                {/* Imagen grande de la previsualización */}
-                <div
-                    className="relative bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer"
-                >
-                    {/* Número de ranking */}
-                    <div className="absolute bottom-4 right-8 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                        1º {/* Esto es fijo porque es solo la simulación */}
+                <div className="relative bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-all cursor-pointer">
+                    <div className="relative">
+                        <img
+                            src={imagen ? URL.createObjectURL(imagen) : "https://via.placeholder.com/800x500"}
+                            alt={titulo || "Título del Anime"}
+                            className="w-full h-64 object-cover rounded-lg mb-4"
+                        />
+                        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                            1º
+                        </div>
                     </div>
+
                     <h3 className="text-xl font-semibold text-blue-500 mb-4 hover:underline">
                         {titulo || "Título del Anime"}
                     </h3>
-                    <img
-                        src={imagen ? URL.createObjectURL(imagen) : "https://via.placeholder.com/800x500"}
-                        alt="Imagen del anime"
-                        className="w-full h-96 object-cover rounded-lg mb-4"
-                    />
-                    <p className="text-sm text-gray-700 mb-2">
+
+                    <p className="text-sm text-gray-700 mb-2 [display:-webkit-box] [overflow:hidden] [text-overflow:ellipsis] [-webkit-box-orient:vertical] [-webkit-line-clamp:7]">
                         <strong>Sinopsis:</strong> {sinopsis || "Sinopsis del anime aquí."}
                     </p>
+
                     <p className="text-sm text-gray-600">
-                        <strong>Puntuación promedio:</strong> -- {/* Sin puntuación aquí */}
+                        <strong>Puntuación promedio:</strong> --
                     </p>
                 </div>
             </div>

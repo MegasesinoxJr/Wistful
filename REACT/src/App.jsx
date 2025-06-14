@@ -124,7 +124,7 @@ export const App = () => {
           path="/PvP-top10"
           element={
             <ProtectedRoute>
-              <PvpEnfrentamientos />
+              <Top10Trofeos />
             </ProtectedRoute>
           }
         />

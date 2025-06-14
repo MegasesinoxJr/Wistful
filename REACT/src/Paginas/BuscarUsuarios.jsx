@@ -31,6 +31,11 @@ export default function BuscarUsuarios() {
           placeholder="Nombre de usuario..."
           value={q}
           onChange={e => setQ(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && q.trim()) {
+              buscar();
+            }
+          }}
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
         <button

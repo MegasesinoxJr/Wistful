@@ -19,126 +19,91 @@ export default function Top10Trofeos() {
     }
   };
 
-  const isTop3 = (index) => index >= 0 && index <= 2;
-
   return (
     <>
       <style>{`
-        /* Título animado */
-        @keyframes titleBounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-
-        /* Slide in up */
-        @keyframes slideInUp {
-          from { opacity: 0; transform: translateY(30px); }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Terremoto (shake horizontal) */
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
-          10%, 90% { transform: translateX(-2px); }
-          20%, 80% { transform: translateX(2px); }
-          30%, 50%, 70% { transform: translateX(-4px); }
-          40%, 60% { transform: translateX(4px); }
+          20%, 60% { transform: translateX(-5px); }
+          40%, 80% { transform: translateX(5px); }
         }
-
-        /* Animación borde moviéndose */
         @keyframes borderMove {
-          0%, 100% { border-color: rgba(255, 215, 0, 0.8); }
-          50% { border-color: rgba(218, 165, 32, 1); }
+          0% {
+            border-image-slice: 1;
+            border-image-source: linear-gradient(270deg, #ffd700, #b8860b);
+            background-position: 0% 50%;
+          }
+          50% {
+            border-image-source: linear-gradient(270deg, #b8860b, #ffd700);
+            background-position: 100% 50%;
+          }
+          100% {
+            border-image-source: linear-gradient(270deg, #ffd700, #b8860b);
+            background-position: 0% 50%;
+          }
         }
-
-        /* Clases título */
-        .title {
-          animation: titleBounce 2s ease-in-out infinite;
-          text-align: center;
-          font-weight: 700;
-          font-size: 2rem;
-          margin-bottom: 1rem;
+        .slide-up {
+          animation: slideUp 0.5s ease forwards;
         }
-
-        /* Item base para slide in */
-        .slide-in-up {
-          animation: slideInUp 0.6s ease-out forwards;
-          opacity: 0;
+        .shake {
+          animation: shake 0.6s ease-in-out infinite;
         }
-
-        /* Item top 3: combinamos slide + shake usando animation-delay para shake */
-        .top3-slide {
-          animation: slideInUp 0.6s ease-out forwards;
-          opacity: 0;
-        }
-
-        .top3-shake {
-          animation: shake 0.8s ease-in-out infinite;
-        }
-
-        /* Bordes animados para top 3 */
-        .animated-border {
-          border-width: 3px;
-          border-style: solid;
-          border-radius: 12px;
-          animation: borderMove 2.5s ease-in-out infinite;
-        }
-
-        .border-top1 {
-          border-color: rgba(255, 215, 0, 0.9);
-        }
-        .border-top2 {
-          border-color: rgba(192,192,192,0.9);
-        }
-        .border-top3 {
-          border-color: rgba(205,127,50,0.9);
+        .border-animated {
+          border: 4px solid;
+          border-image-slice: 1;
+          border-image-source: linear-gradient(270deg, #ffd700, #b8860b);
+          border-image-repeat: round;
+          animation: borderMove 3s linear infinite;
+          /* Para que el borde se anime y el fondo quede separado */
+          background-clip: padding-box;
         }
       `}</style>
 
       <div className="max-w-3xl mx-auto p-4">
-        <h2 className="title">🏆 Top 10 Combatientes por Trofeos</h2>
-        <div className="space-y-3">
+        <h2 className="text-2xl font-bold mb-4 text-center animate-slide-up" style={{animationDelay: '0.3s'}}>
+          🏆 Top 10 Combatientes por Trofeos
+        </h2>
+        <div className="space-y-4">
           {list.map((c, i) => {
-            const top3 = isTop3(i);
-            let borderClass = '';
-            if (i === 0) borderClass = 'border-top1 animated-border';
-            else if (i === 1) borderClass = 'border-top2 animated-border';
-            else if (i === 2) borderClass = 'border-top3 animated-border';
+            const delay = 0.3 + i * 0.15; // para retrasar animación secuencial
+            const baseClasses = `flex items-center justify-between p-3 rounded-lg ${getBgClass(i)} slide-up`;
+            const style = { animationDelay: `${delay}s` };
+
+            if (i < 3) {
+              return (
+                <div
+                  key={c.id}
+                  className={`${baseClasses} shake border-animated`}
+                  style={style}
+                >
+                  <img
+                    src={c.imagen}
+                    alt={c.nombre}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <span className="flex-1 text-center font-medium">{c.nombre}</span>
+                  <span className="font-semibold">🏆 {c.trofeos}</span>
+                </div>
+              );
+            }
 
             return (
               <div
                 key={c.id}
-                className={`
-                  flex items-center justify-between p-4 rounded-xl shadow-lg
-                  ${getBgClass(i)}
-                  ${top3 ? 'top3-slide' : 'slide-in-up'}
-                  ${top3 ? borderClass : ''}
-                `}
-                style={{ animationDelay: `${i * 0.15}s` }}
+                className={baseClasses}
+                style={style}
               >
                 <img
                   src={c.imagen}
                   alt={c.nombre}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-white shadow"
+                  className="w-12 h-12 rounded-full object-cover"
                 />
-                <span className="flex-1 text-center font-medium text-lg select-none">
-                  {c.nombre}
-                </span>
-                <span className="font-semibold text-lg select-none">
-                  🏆 {c.trofeos}
-                </span>
-
-                {/* Añadimos shake sólo para top3 con un div envoltorio */}
-                {top3 && (
-                  <style>{`
-                    .top3-shake-wrapper {
-                      display: flex;
-                      width: 100%;
-                      animation: shake 0.8s ease-in-out infinite;
-                      animation-delay: ${i * 0.15 + 0.6}s;
-                    }
-                  `}</style>
-                )}
+                <span className="flex-1 text-center font-medium">{c.nombre}</span>
+                <span className="font-semibold">🏆 {c.trofeos}</span>
               </div>
             );
           })}

@@ -140,3 +140,11 @@ class CombatienteSerializer(serializers.ModelSerializer):
             'nivel','salud','damage','trofeos','experiencia','nombre'
         ]
         read_only_fields = ['id','nivel','salud','damage','trofeos']
+    
+class TopCombatienteSerializer(serializers.ModelSerializer):
+    nombre = serializers.CharField(source='miembro.nombre')
+    imagen = serializers.ImageField()
+
+    class Meta:
+        model = Combatiente
+        fields = ('id', 'nombre', 'imagen', 'trofeos')

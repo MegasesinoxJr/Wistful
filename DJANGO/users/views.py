@@ -28,6 +28,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from decouple import config
+from rest_framework.generics import ListAPIView
 User = get_user_model()
 
 
@@ -705,6 +706,15 @@ class CombatienteCreateView(generics.GenericAPIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class Top10CombatientesAPIView(ListAPIView):
+    serializer_class = TopCombatienteSerializer
+
+    def get_queryset(self):
+        return Combatiente.objects.select_related('miembro') \
+            .order_by('-trofeos')[:10]
 
 
 

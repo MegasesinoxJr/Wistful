@@ -30,6 +30,7 @@ import PasswordOlvidada from "./Paginas/PasswordOlvidada";
 import ProtectedRoute from "./Paginas/ProtectedRoute";
 import RoleRoute from "./Paginas/RoleRoute";
 import EditarFormulario from "./Paginas/EditarFormulario";
+import Top10Trofeos from "./Paginas/Top10Trofeos";
 
 export const App = () => {
   const [user, setUser] = useState(null);
@@ -113,6 +114,14 @@ export const App = () => {
         />
         <Route
           path="/pvp"
+          element={
+            <ProtectedRoute>
+              <PvpEnfrentamientos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/PvP-top10"
           element={
             <ProtectedRoute>
               <PvpEnfrentamientos />

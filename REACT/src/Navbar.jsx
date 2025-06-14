@@ -55,7 +55,12 @@ export const Navbar = () => {
 
           {/* menu de desktop */}
           <ul className="hidden lg:flex flex-1 justify-center items-center space-x-8">
-            {user && <li><NavLink to="/pvp" className="hover:bg-gray-800 px-3 py-2 rounded transition">PvP</NavLink></li>}
+            {user && (<>
+             <li><NavLink to="/pvp" className="hover:bg-gray-800 px-3 py-2 rounded transition">PvP</NavLink></li>
+             <li><NavLink to="/PvP-top10" className="hover:bg-gray-800 px-3 py-2 rounded transition">Top 10</NavLink></li>
+             </>
+            )}
+            
             {user && (
               <li className="relative group">
                 <button className="hover:bg-gray-800 px-3 py-2 rounded transition">Meet</button>

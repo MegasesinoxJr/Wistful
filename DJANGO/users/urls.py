@@ -38,7 +38,7 @@ urlpatterns = [
 
     #PVP POKEMON
     path('combatiente/', CombatienteCreateView.as_view()),
-
+    path('top10-trofeos/', Top10CombatientesAPIView.as_view(), name='top10-trofeos'),
     #GENERAR CONTRASEÑA OLVIDADA
     path("forgot-password/", ForgotPasswordView.as_view()),
     path("reset-password/", ResetPasswordView.as_view()),

@@ -62,7 +62,7 @@ export const Navbar = () => {
                 <button className="hover:bg-gray-800 px-3 py-2 rounded transition">
                   PvP
                 </button>
-                <ul className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-gray-800 rounded shadow-lg hidden group-hover:block whitespace-nowrap min-w-[120px] z-50">
+                <ul className="absolute top-full left-1/2 transform -translate-x-1/2 mt-0 bg-gray-800 rounded shadow-lg hidden group-hover:block whitespace-nowrap">
                   <li>
                     <NavLink to="/pvp" className="block px-4 py-2 hover:bg-gray-700 transition">
                       PvP

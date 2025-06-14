@@ -14,6 +14,7 @@ export default function AnimeDetalles() {
   const [sinopsis, setSinopsis] = useState("");
   const [generosDisponibles, setGenerosDisponibles] = useState([]);
   const [generosSeleccionados, setGenerosSeleccionados] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   const { user } = useUser();
@@ -52,11 +53,9 @@ export default function AnimeDetalles() {
   const handleDelete = async () => {
     try {
       await axiosInstance.delete(`animes/${id}/`);
-
       navigate("/topAnimes");
     } catch (err) {
       console.error("Error al eliminar el anime:", err);
-
     }
   };
 
@@ -70,19 +69,27 @@ export default function AnimeDetalles() {
 
   const handleSave = async () => {
     try {
-      const payload = {
-        titulo,
-        sinopsis,
-        generos: generosSeleccionados
-      };
-      // Asegúrate de que axiosInstance tenga JSON por defecto
-      axiosInstance.defaults.headers.patch['Content-Type'] = 'application/json';
-      const res = await axiosInstance.patch(`animes/${id}/`, payload);
+      const formData = new FormData();
+      formData.append("titulo", titulo);
+      formData.append("sinopsis", sinopsis);
+      generosSeleccionados.forEach((g) => formData.append("generos", g));
+      if (selectedFile) {
+        formData.append("imagen", selectedFile);
+      }
+
+      await axiosInstance.patch(`animes/${id}/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Recargar datos actualizados
+      const res = await axiosInstancePublic.get(`animes/${id}/`);
       setAnime(res.data);
+      setSelectedFile(null);
       setEditMode(false);
     } catch (err) {
       console.error("Error al guardar cambios:", err);
-
     }
   };
 
@@ -90,7 +97,6 @@ export default function AnimeDetalles() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 mt-14 relative">
-
       {canEdit && (
         <button
           onClick={() => setShowConfirmDelete(true)}
@@ -119,25 +125,36 @@ export default function AnimeDetalles() {
           className="text-3xl font-semibold text-center mt-12 mb-4 w-full border-b border-gray-400"
         />
       ) : (
-        <h2 className="text-3xl font-semibold text-center mt-12 mb-4">{anime.titulo}</h2>
+        <h2 className="text-3xl font-semibold text-center mt-12 mb-4">
+          {anime.titulo}
+        </h2>
       )}
 
       <img
-        src={`${SERVER_BASE_URL}${anime.imagen}`}
+        src={
+          selectedFile
+            ? URL.createObjectURL(selectedFile)
+            : `${SERVER_BASE_URL}${anime.imagen}`
+        }
         alt={anime.titulo}
-        className="w-72 h-auto object-cover mx-auto mb-6 rounded-lg shadow-lg"
-      />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setAnime({ ...anime, imagen: URL.createObjectURL(e.target.files[0]) })}
+        className="w-72 h-auto object-cover mx-auto mb-4 rounded-lg shadow-lg"
       />
 
+      {editMode && (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) setSelectedFile(file);
+          }}
+          className="block mx-auto mb-6"
+        />
+      )}
 
       <div className="text-lg font-medium mb-2">
-        <strong>Sinopsis:</strong>{' '}
+        <strong>Sinopsis:</strong>{" "}
         {editMode ? (
-
           <textarea
             value={sinopsis}
             onChange={(e) => setSinopsis(e.target.value)}
@@ -173,7 +190,8 @@ export default function AnimeDetalles() {
       )}
 
       <p className="text-lg font-medium mb-4">
-        <strong>Puntuación promedio:</strong> {anime.puntuacion_promedio ?? "—"}
+        <strong>Puntuación promedio:</strong>{" "}
+        {anime.puntuacion_promedio ?? "—"}
       </p>
 
       {editMode && (
@@ -194,10 +212,15 @@ export default function AnimeDetalles() {
       {showConfirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full text-center">
-            <p className="mb-4 text-lg font-semibold">¿Estás seguro de que quieres eliminar este anime?</p>
+            <p className="mb-4 text-lg font-semibold">
+              ¿Estás seguro de que quieres eliminar este anime?
+            </p>
             <div className="flex justify-center gap-4">
               <button
-                onClick={async () => { await handleDelete(); setShowConfirmDelete(false); }}
+                onClick={async () => {
+                  await handleDelete();
+                  setShowConfirmDelete(false);
+                }}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
               >
                 Sí, eliminar
@@ -212,7 +235,6 @@ export default function AnimeDetalles() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

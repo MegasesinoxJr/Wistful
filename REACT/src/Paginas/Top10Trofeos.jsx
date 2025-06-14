@@ -30,13 +30,13 @@ export default function Top10Trofeos() {
           50% { transform: translateY(-8px); }
         }
 
-        /* Animación slide in up con fade */
+        /* Slide in up */
         @keyframes slideInUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Animación terremoto */
+        /* Terremoto (shake horizontal) */
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           10%, 90% { transform: translateX(-2px); }
@@ -45,7 +45,7 @@ export default function Top10Trofeos() {
           40%, 60% { transform: translateX(4px); }
         }
 
-        /* Animación borde animado */
+        /* Animación borde moviéndose */
         @keyframes borderMove {
           0%, 100% { border-color: rgba(255, 215, 0, 0.8); }
           50% { border-color: rgba(218, 165, 32, 1); }
@@ -60,23 +60,20 @@ export default function Top10Trofeos() {
           margin-bottom: 1rem;
         }
 
-        /* Item animado general */
+        /* Item base para slide in */
         .slide-in-up {
-          animation-name: slideInUp;
-          animation-duration: 0.6s;
-          animation-fill-mode: forwards;
-          animation-timing-function: ease-out;
+          animation: slideInUp 0.6s ease-out forwards;
           opacity: 0;
         }
 
-        /* Item top 3: slide + shake */
-        .top3-anim {
-          animation-name: slideInUp, shake;
-          animation-duration: 0.6s, 0.8s;
-          animation-timing-function: ease-out, ease-in-out;
-          animation-fill-mode: forwards, both;
-          animation-iteration-count: 1, infinite;
+        /* Item top 3: combinamos slide + shake usando animation-delay para shake */
+        .top3-slide {
+          animation: slideInUp 0.6s ease-out forwards;
           opacity: 0;
+        }
+
+        .top3-shake {
+          animation: shake 0.8s ease-in-out infinite;
         }
 
         /* Bordes animados para top 3 */
@@ -84,10 +81,7 @@ export default function Top10Trofeos() {
           border-width: 3px;
           border-style: solid;
           border-radius: 12px;
-          animation-name: borderMove;
-          animation-duration: 2.5s;
-          animation-iteration-count: infinite;
-          animation-timing-function: ease-in-out;
+          animation: borderMove 2.5s ease-in-out infinite;
         }
 
         .border-top1 {
@@ -105,7 +99,7 @@ export default function Top10Trofeos() {
         <h2 className="title">🏆 Top 10 Combatientes por Trofeos</h2>
         <div className="space-y-3">
           {list.map((c, i) => {
-            const isTop = isTop3(i);
+            const top3 = isTop3(i);
             let borderClass = '';
             if (i === 0) borderClass = 'border-top1 animated-border';
             else if (i === 1) borderClass = 'border-top2 animated-border';
@@ -117,8 +111,8 @@ export default function Top10Trofeos() {
                 className={`
                   flex items-center justify-between p-4 rounded-xl shadow-lg
                   ${getBgClass(i)}
-                  ${isTop ? 'top3-anim' : 'slide-in-up'}
-                  ${isTop ? borderClass : ''}
+                  ${top3 ? 'top3-slide' : 'slide-in-up'}
+                  ${top3 ? borderClass : ''}
                 `}
                 style={{ animationDelay: `${i * 0.15}s` }}
               >
@@ -133,6 +127,18 @@ export default function Top10Trofeos() {
                 <span className="font-semibold text-lg select-none">
                   🏆 {c.trofeos}
                 </span>
+
+                {/* Añadimos shake sólo para top3 con un div envoltorio */}
+                {top3 && (
+                  <style>{`
+                    .top3-shake-wrapper {
+                      display: flex;
+                      width: 100%;
+                      animation: shake 0.8s ease-in-out infinite;
+                      animation-delay: ${i * 0.15 + 0.6}s;
+                    }
+                  `}</style>
+                )}
               </div>
             );
           })}

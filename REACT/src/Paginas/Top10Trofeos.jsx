@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import axiosInstancePublic from '../axiosInstancePublic';
+import axiosInstance from '../axiosInstance';
 
 export default function Top10Trofeos() {
   const [list, setList] = useState([]);
 
   useEffect(() => {
-    axiosInstancePublic.get('/api/top10-trofeos/')
+    axiosInstance.get('/top10-trofeos/')
       .then(res => setList(res.data))
       .catch(err => console.error(err));
   }, []);

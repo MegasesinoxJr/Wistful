@@ -151,7 +151,7 @@ export default function DetallesMeet() {
   });
 
   return (
-    <div className="relative max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-12">
+    <div className="relative max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-12 pt-12">
       {/* Botón Eliminar */}
       {puedeEliminar && (
         <button

@@ -1,0 +1,88 @@
+services:
+    db:
+        image: mariadb:11
+        container_name: wistful-db
+        restart: always
+        volumes:
+            - mariadb_data:/var/lib/mysql
+        environment:
+            MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+            MARIADB_DATABASE: ${DB_NAME}
+            MARIADB_USER: ${DB_USER}
+            MARIADB_PASSWORD: ${DB_PASSWORD}
+        ports:
+            - "${DB_PORT}:3306"
+        healthcheck:
+            test: [ "CMD-SHELL", "mariadb -hlocalhost -u${DB_USER} -p${DB_PASSWORD} -e 'SELECT 1;' ${DB_NAME}" ]
+            interval: 5s
+            timeout: 10s
+            retries: 5
+        networks:
+            - wistful-net
+
+    redis:
+        image: redis:7
+        container_name: wistful-redis
+        restart: always
+        ports:
+            - "${REDIS_PORT}:6379"
+        networks:
+            - wistful-net
+
+    backend:
+        build:
+            context: ./DJANGO
+            dockerfile: Dockerfile.dev
+            args:
+                - PYTHON_VERSION=${PYTHON_VERSION}
+        volumes:
+            - ./DJANGO/:/app
+        env_file:
+            - ./DJANGO/.env
+        ports:
+            - "${DJANGO_PORT}:8000"
+        depends_on:
+            db:
+                condition: service_healthy
+        networks:
+            - wistful-net
+        command: uvicorn wistful.asgi:application --host 0.0.0.0 --port 8000 --reload
+
+    stripe:
+        image: stripe/stripe-cli
+        container_name: stripe-cli
+        restart: unless-stopped
+        entrypoint: >
+            /bin/sh -c "stripe listen --api-key ${STRIPE_SECRET_KEY} --forward-to backend:8000/api/webhook/"
+        environment:
+            - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+        depends_on:
+            backend:
+                condition: service_started
+        networks:
+            - wistful-net
+
+    frontend:
+        build:
+            context: ./REACT
+            dockerfile: Dockerfile.dev
+        volumes:
+            - ./REACT/:/app
+            - /app/node_modules
+        env_file:
+            - ./REACT/.env
+        ports:
+            - "${REACT_PORT}:5173"
+        depends_on:
+            db:
+                condition: service_healthy
+        networks:
+            - wistful-net
+        command: yarn run dev --host
+
+volumes:
+    mariadb_data:
+
+networks:
+    wistful-net:
+        driver: bridge

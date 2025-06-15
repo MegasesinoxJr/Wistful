@@ -1,0 +1,16 @@
+ARG PYTHON_VERSION=3.12.3
+FROM python:${PYTHON_VERSION}-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    python3-dev \
+    pkg-config \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+CMD ["uvicorn", "wistful.asgi:application", "--host", "0.0.0.0", "--port", "5100", "--reload"]

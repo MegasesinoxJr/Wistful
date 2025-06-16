@@ -276,8 +276,8 @@ def anime_detail(request, pk):
         if serializer.is_valid():
             anime = serializer.save()
             # Procesar géneros enviados como lista de IDs en JSON
-            generos_ids = request.data.get('generos')
-            if isinstance(generos_ids, list):
+            generos_ids = request.data.getlist('generos')
+            if generos_ids:
                 generos = Genero.objects.filter(id__in=generos_ids)
                 anime.generos.set(generos)
             return Response(AnimeSerializer(anime).data)
